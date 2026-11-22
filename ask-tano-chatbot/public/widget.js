@@ -21,6 +21,8 @@
   var NAME = "TanoLLM";               // name in the header and greeting
   var LABEL = "Ask TanoLLM";          // text on the launcher pill
   var DOT_COLOR = "#e47bf9";          // the little status dot
+  var DOT_DARK = "#a24db5";           // darker and lighter purples for the hover glitch
+  var DOT_LIGHT = "#f4c2fc";
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
   var COLUMN_WIDTH = "22.33vw";       // overlay width, matches your index column (max-width: 22.33%)
   var MOBILE_BREAK = 768;             // below this screen width, the overlay goes full width
@@ -49,12 +51,14 @@
   // Launcher pill text. PILL_TEXT_NUDGE moves the label down (positive) or up (negative)
   // so the top and bottom padding look equal.
   var PILL_FONT = TITLE_FONT;         // mono, same as the title
-  var PILL_SIZE = "13px";
+  var PILL_SIZE = TITLE_SIZE;        // same size as the TANOLLM title
   var PILL_TEXT_NUDGE = 2;            // in pixels
 
   // Your question bubble. Q_TEXT_NUDGE moves the text down (positive) or up (negative) inside it.
   var Q_PADDING = 14;                 // in pixels, all sides
   var Q_TEXT_NUDGE = 1;               // in pixels
+
+  var GAP_ABOVE_INPUT = 32;           // space between the last line of the conversation and the input box, in pixels
 
   var GREETING = "Hey there, I'm " + NAME + ".";
   var SUGGESTIONS = [
@@ -83,7 +87,7 @@
       display: inline-flex; align-items: center; gap: 10px;
       background: var(--bg); color: var(--fg); border: 1px solid var(--line);
       padding: 12px 16px 12px 14px; border-radius: ${RADIUS};
-      font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: .02em; word-spacing: .12em; text-transform: uppercase;
+      font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: ${TITLE_TRACKING}; word-spacing: .12em; text-transform: uppercase;
       box-shadow: 0 6px 24px rgba(0,0,0,.18);
     }
     /* Glitch hover, same as the buttons on tanodsgn.com (.button-14) */
@@ -126,16 +130,17 @@
       85%  { background-color: rgba(119, 119, 119, 0.3); }
       100% { background-color: rgba(119, 119, 119, 0.3); }
     }
+    /* dot flickers between darker and lighter purple, no movement */
     @keyframes glitch-dot {
-      0%   { opacity: 1;   transform: translateY(${-DOT_NUDGE}px); }
-      10%  { opacity: .2;  transform: translate(1px, ${-DOT_NUDGE}px); }
-      20%  { opacity: 1;   transform: translate(-1px, ${-DOT_NUDGE}px); }
-      30%  { opacity: .35; transform: translateY(${-DOT_NUDGE}px); }
-      40%  { opacity: 1;   transform: translate(1px, ${-DOT_NUDGE}px); }
-      52%  { opacity: .5;  transform: translateY(${-DOT_NUDGE}px); }
-      62%  { opacity: 1;   transform: translate(-1px, ${-DOT_NUDGE}px); }
-      75%  { opacity: .7;  transform: translateY(${-DOT_NUDGE}px); }
-      100% { opacity: 1;   transform: translateY(${-DOT_NUDGE}px); }
+      0%   { background-color: ${DOT_COLOR}; }
+      10%  { background-color: ${DOT_DARK}; }
+      20%  { background-color: ${DOT_LIGHT}; }
+      30%  { background-color: ${DOT_DARK}; }
+      40%  { background-color: ${DOT_LIGHT}; }
+      52%  { background-color: ${DOT_COLOR}; }
+      62%  { background-color: ${DOT_DARK}; }
+      75%  { background-color: ${DOT_LIGHT}; }
+      100% { background-color: ${DOT_COLOR}; }
     }
     @keyframes glitch-icon {
       0%   { opacity: 1;   transform: none; }
@@ -176,7 +181,7 @@
 
     /* Conversation */
     .log { flex: 1; min-height: 0; overflow-y: auto; position: relative; display: flex; flex-direction: column;
-           padding: 24px 0 18px; scrollbar-width: none; }
+           padding: 24px 0 ${GAP_ABOVE_INPUT}px; scrollbar-width: none; }
     .log::-webkit-scrollbar { display: none; }
     .intro { margin-top: auto; display: flex; flex-direction: column; gap: 18px; }
     .greet { font-size: ${GREETING_SIZE}; line-height: 1.2; letter-spacing: -.01em; }
@@ -329,7 +334,7 @@
     turn.appendChild(q); turn.appendChild(out);
     log.appendChild(turn);
     // Give the new turn a full screen of room so the question can sit at the top.
-    turn.style.minHeight = (log.clientHeight - 42 + (q.offsetTop - turn.offsetTop)) + "px";
+    turn.style.minHeight = (log.clientHeight - 24 - GAP_ABOVE_INPUT + (q.offsetTop - turn.offsetTop)) + "px";
     log.scrollTo({ top: q.offsetTop - 24, behavior: "smooth" });
 
     asked.push(text);
