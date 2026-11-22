@@ -84,9 +84,31 @@
       background: var(--bg); color: var(--fg); border: 1px solid var(--line);
       padding: 12px 16px 12px 14px; border-radius: ${RADIUS};
       font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: .02em; word-spacing: .12em; text-transform: uppercase;
-      box-shadow: 0 6px 24px rgba(0,0,0,.18); transition: transform .2s ease;
+      box-shadow: 0 6px 24px rgba(0,0,0,.18);
     }
-    .launcher:hover { transform: translateY(-2px); }
+    /* Glitch hover, same as the buttons on tanodsgn.com (.button-14) */
+    .launcher, .send, .tools button { position: relative; overflow: hidden; }
+    .launcher { position: fixed; }
+    .launcher::after, .send::after, .tools button::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none; background-color: rgba(255,255,255,0);
+    }
+    .launcher:hover::after, .launcher:focus-visible::after,
+    .send:not(:disabled):hover::after, .send:focus-visible::after,
+    .tools button:hover::after, .tools button:focus-visible::after {
+      animation: glitch-dark .45s steps(1, end) forwards;
+    }
+    @keyframes glitch-dark {
+      0%   { background-color: rgba(255, 255, 255, 0); }
+      10%  { background-color: rgba(255, 255, 255, 0.35); }
+      20%  { background-color: rgba(0, 0, 0, 0.35); }
+      30%  { background-color: rgba(255, 255, 255, 0.3); }
+      40%  { background-color: rgba(0, 0, 0, 0.4); }
+      52%  { background-color: rgba(255, 255, 255, 0.22); }
+      62%  { background-color: rgba(0, 0, 0, 0.35); }
+      75%  { background-color: rgba(255, 255, 255, 0.12); }
+      85%  { background-color: rgba(0, 0, 0, 0.3); }
+      100% { background-color: rgba(0, 0, 0, 0.3); }
+    }
     .launcher[hidden] { display: none; }
     /* Trim the font's built-in space above/below the letters so text centers optically */
     .trim { display: block; line-height: 1; text-box: trim-both cap alphabetic; }
@@ -148,7 +170,6 @@
     textarea::placeholder { color: var(--mute); }
     .send { width: 32px; height: 32px; display: grid; place-items: center; color: var(--fg);
             border-radius: ${RADIUS}; flex: none; }
-    .send:hover:not(:disabled) { background: var(--line); }
     .send:disabled { color: var(--mute); opacity: .6; cursor: default; }
 
     @media (max-width: ${MOBILE_BREAK}px) { .panel { width: 100vw; min-width: 0; } }
@@ -333,5 +354,4 @@
 
   if (d.open === "true") setOpen(true);
 })();
-
 
