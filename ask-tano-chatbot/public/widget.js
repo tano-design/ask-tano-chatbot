@@ -31,11 +31,20 @@
   // TITLE_FONT tries Monument Grotesk Mono first; if your Cargo site doesn't load it, it falls back to BRAND_FONT.
   var TITLE_FONT = '"Monument Grotesk Mono", "ABC Monument Grotesk Mono", "Monument Grotesk Mono Variable", ' + BRAND_FONT;
   var TITLE_UPPERCASE = true;         // true = TANOLLM, false = TanoLLM
-  var TITLE_SIZE = "13px";
+  var TITLE_SIZE = "1.1rem";
+  var TITLE_WEIGHT = "700";          // 700 = bold, 400 = regular
   var TITLE_TRACKING = "0.04em";      // letter spacing
+
+  // Text sizes use Cargo's own units (rem), so 1.1 here = 1.1 in Cargo and scales the same way.
+  var BODY_SIZE = "1.1rem";           // answers, questions, suggestions, input (matches your body text)
+  var BODY_LINE_HEIGHT = "1.35";
+  var GREETING_SIZE = "1.6rem";       // "Hey there, I'm TanoLLM."
 
   // Nudges the text inside the input box up (positive) or down (negative) to center it.
   var INPUT_TEXT_NUDGE = 5;           // in pixels
+
+  // Nudges the pink dot up (positive) or down (negative) to center it on the text.
+  var DOT_NUDGE = 1;                  // in pixels
 
   var GREETING = "Hey there, I'm " + NAME + ".";
   var SUGGESTIONS = [
@@ -50,7 +59,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     .wrap {
       --bg: #191919; --fg: #f2f1ed; --mute: #8a8a85; --line: #2e2e2c; --field: #222221;
-      font: 15px/1.45 ${BRAND_FONT};
+      font: ${BODY_SIZE}/${BODY_LINE_HEIGHT} ${BRAND_FONT};
       color: var(--fg); -webkit-font-smoothing: antialiased;
     }
     .wrap.light { --bg: #f4f4f2; --fg: #2b2f36; --mute: #8b8d91; --line: #e2e2df; --field: #ebebe8; }
@@ -71,7 +80,7 @@
     .launcher[hidden] { display: none; }
     /* Trim the font's built-in space above/below the letters so text centers optically */
     .trim { display: block; line-height: 1; text-box: trim-both cap alphabetic; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: ${DOT_COLOR}; flex: none; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: ${DOT_COLOR}; flex: none; transform: translateY(${-DOT_NUDGE}px); }
     .launcher .dot { animation: pulse 2.4s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 
@@ -87,26 +96,30 @@
     @keyframes slide { from { opacity: 0; transform: translateX(${SIDE === "left" ? "-12px" : "12px"}) } to { opacity: 1; transform: none } }
 
     header { display: flex; align-items: center; justify-content: space-between; flex: none; }
-    .title { display: flex; align-items: center; gap: 9px; font-family: ${TITLE_FONT}; font-size: ${TITLE_SIZE};
+    .title { display: flex; align-items: center; gap: 9px; font-family: ${TITLE_FONT}; font-size: ${TITLE_SIZE}; font-weight: ${TITLE_WEIGHT};
              letter-spacing: ${TITLE_TRACKING}; text-transform: ${TITLE_UPPERCASE ? "uppercase" : "none"}; }
     .tools { display: flex; gap: 14px; color: var(--mute); }
     .tools button { width: 20px; height: 20px; display: grid; place-items: center; }
     .tools button:hover { color: var(--fg); }
 
-    /* Conversation: anchored to the bottom, scrolls when long */
-    .log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
+    /* Conversation */
+    .log { flex: 1; min-height: 0; overflow-y: auto; position: relative; display: flex; flex-direction: column;
            padding: 24px 0 18px; scrollbar-width: none; }
     .log::-webkit-scrollbar { display: none; }
-    .log > :first-child { margin-top: auto; }
-    .greet { font-size: 22px; line-height: 1.25; letter-spacing: -.01em; }
-    .msg { white-space: pre-wrap; word-wrap: break-word; }
-    .me { color: var(--mute); }
-    .me::before { content: "\\21B3\\00a0"; }
-    .typing::after { content: "\\258D"; animation: blink 1s steps(1) infinite; color: var(--mute); }
+    .intro { margin-top: auto; display: flex; flex-direction: column; gap: 18px; }
+    .greet { font-size: ${GREETING_SIZE}; line-height: 1.2; letter-spacing: -.01em; }
+    .turn { display: flex; flex-direction: column; gap: 18px; flex: none; }
+    .turn + .turn { padding-top: 28px; }
+    .q { background: var(--field); border-radius: ${RADIUS}; padding: 12px 14px; }
+    .a { white-space: pre-wrap; word-wrap: break-word; }
+    .a.typing:empty::after, .a.typing::after { content: "\\258D"; animation: blink 1s steps(1) infinite; color: var(--mute); }
     @keyframes blink { 50% { opacity: 0 } }
+    .follow { border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-direction: column; gap: 12px;
+              animation: fade .35s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px) } to { opacity: 1; transform: none } }
 
     .chips { display: flex; flex-direction: column; gap: 12px; }
-    .chip { color: var(--mute); display: flex; align-items: baseline; gap: 8px; line-height: 1.35; }
+    .chip { color: var(--mute); display: flex; align-items: baseline; gap: 8px; }
     .chip::before { content: "\\21B3"; flex: none; }
     .chip:hover { color: var(--fg); }
 
@@ -114,7 +127,7 @@
     form { flex: none; display: flex; align-items: center; gap: 8px;
            background: var(--field); border-radius: ${RADIUS}; padding: 4px 6px 4px 14px; }
     textarea { flex: 1; resize: none; border: 0; background: transparent; color: var(--fg);
-               font: inherit; line-height: 1.3; max-height: 120px; outline: none; display: block;
+               font: inherit; max-height: 120px; outline: none; display: block;
                padding: ${10 - INPUT_TEXT_NUDGE}px 0 ${10 + INPUT_TEXT_NUDGE}px;
                overflow-y: hidden; scrollbar-width: none; }
     textarea::-webkit-scrollbar { display: none; }
@@ -164,31 +177,33 @@
     });
   }
 
-  function addMsg(role, text) {
-    var el = document.createElement("div");
-    el.className = "msg " + (role === "user" ? "me" : "bot");
-    el.textContent = text;
-    log.appendChild(el);
-    log.scrollTop = log.scrollHeight;
-    return el;
+  var MARKER = "%%FOLLOWUPS%%";
+  var asked = [];
+
+  function chipList(questions) {
+    var wrap = document.createElement("div");
+    wrap.className = "chips";
+    questions.forEach(function (q) {
+      var btn = document.createElement("button");
+      btn.className = "chip"; btn.type = "button"; btn.textContent = q;
+      btn.onclick = function () { ask(q); };
+      wrap.appendChild(btn);
+    });
+    return wrap;
   }
 
+  // Before the first question: greeting + starter questions, sitting at the bottom.
   function start() {
-    history = [];
+    history = []; asked = [];
     log.innerHTML = "";
+    var intro = document.createElement("div");
+    intro.className = "intro";
     var g = document.createElement("div");
     g.className = "greet";
     g.textContent = GREETING;
-    log.appendChild(g);
-    var chips = document.createElement("div");
-    chips.className = "chips";
-    SUGGESTIONS.forEach(function (q) {
-      var b = document.createElement("button");
-      b.className = "chip"; b.type = "button"; b.textContent = q;
-      b.onclick = function () { ask(q); };
-      chips.appendChild(b);
-    });
-    log.appendChild(chips);
+    intro.appendChild(g);
+    intro.appendChild(chipList(SUGGESTIONS));
+    log.appendChild(intro);
   }
 
   function setOpen(open, fromKeyboard) {
@@ -203,19 +218,49 @@
     }
   }
 
+  // Split the raw reply into the visible answer and the follow-up questions.
+  function parse(raw) {
+    var i = raw.indexOf("%%");
+    var text = (i >= 0 ? raw.slice(0, i) : raw).replace(/\s+$/, "");
+    var follow = [];
+    var m = raw.indexOf(MARKER);
+    if (m >= 0) {
+      follow = raw.slice(m + MARKER.length).split("\n")
+        .map(function (l) { return l.replace(/^[\s\-\u2022\d.)]+/, "").trim(); })
+        .filter(function (l) { return l && l.length < 120; })
+        .slice(0, 3);
+    }
+    return { text: text, follow: follow };
+  }
+
   async function ask(text) {
     text = text.trim();
     if (!text || busy) return;
     busy = true;
-    var chips = log.querySelector(".chips");
-    if (chips) chips.remove();
     input.value = ""; resize(); send.disabled = true;
-    addMsg("user", text);
-    history.push({ role: "user", content: text });
 
-    var out = addMsg("assistant", "");
-    out.classList.add("typing");
-    var answer = "";
+    // After the first question the greeting goes away.
+    var intro = log.querySelector(".intro");
+    if (intro) intro.remove();
+    // Old follow-up lists go away too; earlier answers stay above for scrolling back.
+    log.querySelectorAll(".follow").forEach(function (f) { f.remove(); });
+    log.querySelectorAll(".turn").forEach(function (t) { t.style.minHeight = ""; });
+
+    var turn = document.createElement("div");
+    turn.className = "turn";
+    var q = document.createElement("div");
+    q.className = "q"; q.textContent = text;
+    var out = document.createElement("div");
+    out.className = "a typing";
+    turn.appendChild(q); turn.appendChild(out);
+    log.appendChild(turn);
+    // Give the new turn a full screen of room so the question can sit at the top.
+    turn.style.minHeight = (log.clientHeight - 42 + (q.offsetTop - turn.offsetTop)) + "px";
+    log.scrollTo({ top: q.offsetTop - 24, behavior: "smooth" });
+
+    asked.push(text);
+    history.push({ role: "user", content: text });
+    var raw = "", parsed = { text: "", follow: [] };
     try {
       var res = await fetch(API, {
         method: "POST",
@@ -223,25 +268,35 @@
         body: JSON.stringify({ messages: history }),
       });
       if (!res.ok || !res.body) {
-        answer = (await res.text()) || "Something went wrong. Try again in a moment.";
-        out.textContent = answer;
+        raw = (await res.text()) || "Something went wrong. Try again in a moment.";
       } else {
         var reader = res.body.getReader(), dec = new TextDecoder();
         while (true) {
           var r = await reader.read();
           if (r.done) break;
-          answer += dec.decode(r.value, { stream: true });
-          out.textContent = answer;
-          log.scrollTop = log.scrollHeight;
+          raw += dec.decode(r.value, { stream: true });
+          out.textContent = parse(raw).text; // answer reveals top to bottom as it's written
         }
       }
     } catch (e) {
-      answer = "Couldn't reach " + NAME + ". Check your connection and try again.";
-      out.textContent = answer;
+      raw = "Couldn't reach " + NAME + ". Check your connection and try again.";
     }
+    parsed = parse(raw);
+    out.textContent = parsed.text;
     out.classList.remove("typing");
-    if (answer) history.push({ role: "assistant", content: answer });
+    if (parsed.text) history.push({ role: "assistant", content: parsed.text });
     else history.pop();
+
+    // Follow-up questions under the answer (falls back to unused starters).
+    var notAsked = function (s2) { return asked.indexOf(s2) < 0; };
+    var follow = parsed.follow.filter(notAsked);
+    if (!follow.length) follow = SUGGESTIONS.filter(notAsked).slice(0, 3);
+    if (follow.length) {
+      var f = document.createElement("div");
+      f.className = "follow";
+      f.appendChild(chipList(follow));
+      turn.appendChild(f);
+    }
     busy = false;
     input.focus();
   }
@@ -264,3 +319,4 @@
 
   if (d.open === "true") setOpen(true);
 })();
+
