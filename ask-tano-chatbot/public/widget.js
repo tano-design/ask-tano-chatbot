@@ -18,8 +18,8 @@
   var SIDE = d.position === "right" ? "right" : "left";
 
   // ── Design settings: edit these ─────────────────────────────────────────────
-  var NAME = "TanoLLM";               // name in the header and greeting
-  var LABEL = "Ask TanoLLM";          // text on the launcher pill
+  var NAME = "tanoLLM";               // name in the header and greeting
+  var LABEL = "Ask tanoLLM";          // text on the launcher pill
   var DOT_COLOR = "#e47bf9";          // the little status dot
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
   var COLUMN_WIDTH = "22.33vw";       // overlay width, matches your index column (max-width: 22.33%)
