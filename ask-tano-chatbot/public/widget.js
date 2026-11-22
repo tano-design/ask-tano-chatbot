@@ -54,11 +54,13 @@
       display: inline-flex; align-items: center; gap: 10px;
       background: var(--bg); color: var(--fg); border: 1px solid var(--line);
       padding: 11px 16px 11px 14px; border-radius: ${RADIUS};
-      font: 500 13px/1 ${BRAND_FONT}; letter-spacing: .02em; text-transform: uppercase;
+      font: 500 13px/1 ${BRAND_FONT}; letter-spacing: .02em; word-spacing: .12em; text-transform: uppercase;
       box-shadow: 0 6px 24px rgba(0,0,0,.18); transition: transform .2s ease;
     }
     .launcher:hover { transform: translateY(-2px); }
     .launcher[hidden] { display: none; }
+    /* Trim the font's built-in space above/below the letters so text centers optically */
+    .trim { display: block; line-height: 1; text-box: trim-both cap alphabetic; }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: ${DOT_COLOR}; flex: none; }
     .launcher .dot { animation: pulse 2.4s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
@@ -67,7 +69,7 @@
     .panel {
       position: fixed; top: 0; bottom: 0; ${SIDE}: 0; z-index: 2147483001;
       width: ${COLUMN_WIDTH}; min-width: 280px;
-      background: var(--bg); border-${SIDE === "left" ? "right" : "left"}: 1px solid var(--line);
+      background: var(--bg);
       padding: ${EDGE}; display: flex; flex-direction: column;
       animation: slide .25s ease;
     }
@@ -75,7 +77,7 @@
     @keyframes slide { from { opacity: 0; transform: translateX(${SIDE === "left" ? "-12px" : "12px"}) } to { opacity: 1; transform: none } }
 
     header { display: flex; align-items: center; justify-content: space-between; flex: none; }
-    .title { display: flex; align-items: center; gap: 9px; font-size: 15px; }
+    .title { display: flex; align-items: center; gap: 9px; font-size: 15px; letter-spacing: .01em; }
     .tools { display: flex; gap: 14px; color: var(--mute); }
     .tools button { width: 20px; height: 20px; display: grid; place-items: center; }
     .tools button:hover { color: var(--fg); }
@@ -93,7 +95,7 @@
     @keyframes blink { 50% { opacity: 0 } }
 
     .chips { display: flex; flex-direction: column; gap: 12px; }
-    .chip { color: var(--mute); display: flex; gap: 8px; line-height: 1.35; }
+    .chip { color: var(--mute); display: flex; align-items: baseline; gap: 8px; line-height: 1.35; }
     .chip::before { content: "\\21B3"; flex: none; }
     .chip:hover { color: var(--fg); }
 
@@ -101,7 +103,7 @@
     form { flex: none; display: flex; align-items: center; gap: 8px;
            background: var(--field); border-radius: ${RADIUS}; padding: 4px 6px 4px 14px; }
     textarea { flex: 1; resize: none; border: 0; background: transparent; color: var(--fg);
-               font: inherit; max-height: 120px; padding: 10px 0; outline: none; }
+               font: inherit; line-height: 1.3; max-height: 120px; padding: 10px 0; outline: none; display: block; }
     textarea::placeholder { color: var(--mute); }
     .send { width: 32px; height: 32px; display: grid; place-items: center; color: var(--fg);
             border-radius: ${RADIUS}; flex: none; }
@@ -123,7 +125,7 @@
     "<style>" + css + "</style>" +
     '<div class="wrap ' + THEME + '">' +
     '  <aside class="panel" role="dialog" aria-label="' + esc(NAME) + '" hidden>' +
-    '    <header><span class="title"><span class="dot"></span>' + esc(NAME) + "</span>" +
+    '    <header><span class="title"><span class="dot"></span><span class="trim">' + esc(NAME) + "</span></span>" +
     '      <span class="tools"><button class="reset" aria-label="Start over">' + ICON_RESET + "</button>" +
     '      <button class="x" aria-label="Close">' + ICON_CLOSE + "</button></span></header>" +
     '    <div class="log" aria-live="polite"></div>' +
@@ -132,7 +134,7 @@
     '      <button class="send" type="submit" aria-label="Send" disabled>' + ICON_SEND + "</button>" +
     "    </form>" +
     "  </aside>" +
-    '  <button class="launcher" aria-expanded="false"><span class="dot"></span>' + esc(LABEL) + "</button>" +
+    '  <button class="launcher" aria-expanded="false"><span class="dot"></span><span class="trim">' + esc(LABEL) + "</span></button>" +
     "</div>";
   document.body.appendChild(host);
 
@@ -175,15 +177,15 @@
     log.appendChild(chips);
   }
 
-  function setOpen(open) {
+  function setOpen(open, fromKeyboard) {
     panel.hidden = !open;
     launcher.hidden = open;
     launcher.setAttribute("aria-expanded", String(open));
     if (open) {
       if (!log.children.length) start();
       setTimeout(function () { input.focus(); }, 50);
-    } else {
-      launcher.focus();
+    } else if (fromKeyboard) {
+      launcher.focus(); // only move focus back for keyboard users, so no focus ring after a mouse click
     }
   }
 
@@ -242,7 +244,7 @@
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input.value); }
   });
-  root.addEventListener("keydown", function (e) { if (e.key === "Escape") setOpen(false); });
+  root.addEventListener("keydown", function (e) { if (e.key === "Escape") setOpen(false, true); });
   form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };
 
   if (d.open === "true") setOpen(true);
