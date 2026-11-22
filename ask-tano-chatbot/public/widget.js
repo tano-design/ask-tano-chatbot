@@ -1,13 +1,11 @@
-/*  Ask-about-tano chat widget
+/*  TanoLLM chat widget
  *  Paste ONE line into Cargo (Site Settings → CSS / HTML → HTML):
- *    <script src="https://YOUR-PROJECT.vercel.app/widget.js" defer></script>
+ *    <script src="https://ask-tano-chatbot.vercel.app/widget.js" defer></script>
  *
  *  Optional settings, as attributes on that same script tag:
- *    data-label="Ask about tano"     text on the launcher button
- *    data-title="tano, explained"     heading inside the panel
  *    data-theme="dark" | "light"      default: dark
- *    data-position="right" | "left"   default: right
- *    data-open="true"                 start opened (handy for a dedicated page)
+ *    data-position="left" | "right"   which side the column overlay and pill sit on (default: left)
+ *    data-open="true"                 start opened
  */
 (function () {
   if (window.__askTanoLoaded) return; // Cargo can re-run scripts between pages
@@ -16,100 +14,107 @@
   var script = document.currentScript;
   var d = (script && script.dataset) || {};
   var API = (d.api || new URL(script.src).origin) + "/api/chat";
-  var LABEL = d.label || "Ask about tano";
-  var TITLE = d.title || "Ask about tano";
   var THEME = d.theme === "light" ? "light" : "dark";
-  var SIDE = d.position === "left" ? "left" : "right";
+  var SIDE = d.position === "right" ? "right" : "left";
 
-  // ── Edit these starter questions ──
+  // ── Design settings: edit these ─────────────────────────────────────────────
+  var NAME = "TanoLLM";               // name in the header and greeting
+  var LABEL = "Ask TanoLLM";          // text on the launcher pill
+  var DOT_COLOR = "#e47bf9";          // the little status dot
+  var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
+  var COLUMN_WIDTH = "22.33vw";       // overlay width, matches your index column (max-width: 22.33%)
+  var MOBILE_BREAK = 768;             // below this screen width, the overlay goes full width
+  var RADIUS = "0";                   // corner rounding of pill, input and buttons: "0" = rectangular
+  var BRAND_FONT = '"Monument Grotesk", "Monument Grotesk Variable", "ABC Monument Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif';
+
+  var GREETING = "Hey there, I'm " + NAME + ".";
   var SUGGESTIONS = [
     "What kind of designer is tano?",
     "Tell me about Espial Industries",
     "What tools does tano use?",
-    "How do I get in touch?",
   ];
-  var GREETING =
-    "Hi. I'm a small assistant that knows about tano's work, process and background. What do you want to know?";
+  var PLACEHOLDER = "Ask about tano\u2026";
 
   var css = `
     :host { all: initial; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     .wrap {
-      --bg: #191919; --fg: #f2f1ed; --mute: #8a8a85; --line: #333331; --chip: #232322;
-      --accent: #f2f1ed; --accent-fg: #191919;
-      font: 14px/1.45 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --bg: #191919; --fg: #f2f1ed; --mute: #8a8a85; --line: #2e2e2c; --field: #222221;
+      font: 15px/1.45 ${BRAND_FONT};
       color: var(--fg); -webkit-font-smoothing: antialiased;
-      position: fixed; bottom: 20px; ${SIDE}: 20px; z-index: 2147483000;
-      display: flex; flex-direction: column; align-items: ${SIDE === "right" ? "flex-end" : "flex-start"}; gap: 10px;
     }
-    .wrap.light {
-      --bg: #f6f5f1; --fg: #191919; --mute: #77756f; --line: #dddbd4; --chip: #ecebe6;
-      --accent: #191919; --accent-fg: #f6f5f1;
-    }
-    .mono { font-family: "SFMono-Regular", Menlo, Consolas, monospace; font-size: 11px;
-            letter-spacing: .08em; text-transform: uppercase; }
+    .wrap.light { --bg: #f4f4f2; --fg: #2b2f36; --mute: #8b8d91; --line: #e2e2df; --field: #ebebe8; }
 
+    button { all: unset; cursor: pointer; }
+    button:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
+
+    /* Launcher pill */
     .launcher {
-      all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
+      position: fixed; bottom: ${EDGE}; ${SIDE}: ${EDGE}; z-index: 2147483000;
+      display: inline-flex; align-items: center; gap: 10px;
       background: var(--bg); color: var(--fg); border: 1px solid var(--line);
-      padding: 11px 16px 11px 14px; border-radius: 999px;
+      padding: 11px 16px 11px 14px; border-radius: ${RADIUS};
+      font: 500 13px/1 ${BRAND_FONT}; letter-spacing: .02em; text-transform: uppercase;
       box-shadow: 0 6px 24px rgba(0,0,0,.18); transition: transform .2s ease;
     }
-    .launcher.mono { font: 11px/1 "SFMono-Regular", Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; }
-    .launcher[hidden] { display: none; }
     .launcher:hover { transform: translateY(-2px); }
-    .launcher:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: #3ddc84; animation: pulse 2.4s infinite; }
+    .launcher[hidden] { display: none; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: ${DOT_COLOR}; flex: none; }
+    .launcher .dot { animation: pulse 2.4s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 
+    /* Column overlay */
     .panel {
-      width: 370px; height: min(560px, calc(100vh - 100px));
-      background: var(--bg); border: 1px solid var(--line); border-radius: 14px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.28);
-      display: flex; flex-direction: column; overflow: hidden;
-      transform-origin: bottom ${SIDE}; animation: rise .22s ease;
+      position: fixed; top: 0; bottom: 0; ${SIDE}: 0; z-index: 2147483001;
+      width: ${COLUMN_WIDTH}; min-width: 280px;
+      background: var(--bg); border-${SIDE === "left" ? "right" : "left"}: 1px solid var(--line);
+      padding: ${EDGE}; display: flex; flex-direction: column;
+      animation: slide .25s ease;
     }
     .panel[hidden] { display: none; }
-    @keyframes rise { from { opacity: 0; transform: translateY(8px) scale(.98) } to { opacity: 1; transform: none } }
+    @keyframes slide { from { opacity: 0; transform: translateX(${SIDE === "left" ? "-12px" : "12px"}) } to { opacity: 1; transform: none } }
 
-    header { display: flex; align-items: center; justify-content: space-between;
-             padding: 14px 16px; border-bottom: 1px solid var(--line); }
-    header .t { display: flex; align-items: center; gap: 9px; color: var(--fg); }
-    .x { all: unset; cursor: pointer; color: var(--mute); width: 24px; height: 24px;
-         display: grid; place-items: center; border-radius: 6px; font-size: 18px; line-height: 1; }
-    .x:hover { color: var(--fg); background: var(--chip); }
+    header { display: flex; align-items: center; justify-content: space-between; flex: none; }
+    .title { display: flex; align-items: center; gap: 9px; font-size: 15px; }
+    .tools { display: flex; gap: 14px; color: var(--mute); }
+    .tools button { width: 20px; height: 20px; display: grid; place-items: center; }
+    .tools button:hover { color: var(--fg); }
 
-    .log { flex: 1; overflow-y: auto; padding: 18px 16px 8px; display: flex; flex-direction: column; gap: 14px;
-           scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
-    .msg { max-width: 88%; white-space: pre-wrap; word-wrap: break-word; }
-    .msg .who { display: block; color: var(--mute); margin-bottom: 4px; }
-    .bot { align-self: flex-start; }
-    .me { align-self: flex-end; background: var(--chip); padding: 9px 12px; border-radius: 12px 12px 3px 12px; }
-    .me .who { display: none; }
+    /* Conversation: anchored to the bottom, scrolls when long */
+    .log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 18px;
+           padding: 24px 0 18px; scrollbar-width: none; }
+    .log::-webkit-scrollbar { display: none; }
+    .log > :first-child { margin-top: auto; }
+    .greet { font-size: 22px; line-height: 1.25; letter-spacing: -.01em; }
+    .msg { white-space: pre-wrap; word-wrap: break-word; }
+    .me { color: var(--mute); }
+    .me::before { content: "\\21B3\\00a0"; }
     .typing::after { content: "\\258D"; animation: blink 1s steps(1) infinite; color: var(--mute); }
     @keyframes blink { 50% { opacity: 0 } }
 
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; }
-    .chip { all: unset; cursor: pointer; font-size: 12.5px; color: var(--fg); background: transparent;
-            border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; }
-    .chip:hover { background: var(--chip); }
+    .chips { display: flex; flex-direction: column; gap: 12px; }
+    .chip { color: var(--mute); display: flex; gap: 8px; line-height: 1.35; }
+    .chip::before { content: "\\21B3"; flex: none; }
+    .chip:hover { color: var(--fg); }
 
-    form:focus-within { background: var(--chip); }
-    form { display: flex; align-items: flex-end; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
+    /* Input */
+    form { flex: none; display: flex; align-items: center; gap: 8px;
+           background: var(--field); border-radius: ${RADIUS}; padding: 4px 6px 4px 14px; }
     textarea { flex: 1; resize: none; border: 0; background: transparent; color: var(--fg);
-               font: inherit; max-height: 110px; padding: 8px 4px; outline: none; }
+               font: inherit; max-height: 120px; padding: 10px 0; outline: none; }
     textarea::placeholder { color: var(--mute); }
-    .send { all: unset; cursor: pointer; width: 34px; height: 34px; border-radius: 50%;
-            background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; flex: none; }
-    .send:disabled { opacity: .35; cursor: default; }
-    .foot { text-align: center; color: var(--mute); padding: 0 0 10px; font-size: 10px; }
+    .send { width: 32px; height: 32px; display: grid; place-items: center; color: var(--fg);
+            border-radius: ${RADIUS}; flex: none; }
+    .send:hover:not(:disabled) { background: var(--line); }
+    .send:disabled { color: var(--mute); opacity: .6; cursor: default; }
 
-    @media (max-width: 480px) {
-      .wrap { bottom: 12px; ${SIDE}: 12px; }
-      .panel { width: calc(100vw - 24px); height: calc(100dvh - 90px); }
-    }
+    @media (max-width: ${MOBILE_BREAK}px) { .panel { width: 100vw; min-width: 0; } }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   `;
+
+  var ICON_RESET = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 8a5.5 5.5 0 1 0 1.7-4M2.5 2.5v3h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  var ICON_CLOSE = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2 2 12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+  var ICON_SEND = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M2.5 6.5 7 2l4.5 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   var host = document.createElement("div");
   host.id = "ask-tano";
@@ -117,25 +122,22 @@
   root.innerHTML =
     "<style>" + css + "</style>" +
     '<div class="wrap ' + THEME + '">' +
-    '  <section class="panel" role="dialog" aria-label="' + esc(TITLE) + '" hidden>' +
-    '    <header><span class="t mono"><span class="dot"></span>' + esc(TITLE) + "</span>" +
-    '      <button class="x" aria-label="Close chat">&times;</button></header>' +
+    '  <aside class="panel" role="dialog" aria-label="' + esc(NAME) + '" hidden>' +
+    '    <header><span class="title"><span class="dot"></span>' + esc(NAME) + "</span>" +
+    '      <span class="tools"><button class="reset" aria-label="Start over">' + ICON_RESET + "</button>" +
+    '      <button class="x" aria-label="Close">' + ICON_CLOSE + "</button></span></header>" +
     '    <div class="log" aria-live="polite"></div>' +
-    '    <div class="chips"></div>' +
     "    <form>" +
-    '      <textarea rows="1" maxlength="600" placeholder="Ask a question&hellip;" aria-label="Your message"></textarea>' +
-    '      <button class="send" type="submit" aria-label="Send" disabled>' +
-    '        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M2.5 6.5 7 2l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-    "      </button>" +
+    '      <textarea rows="1" maxlength="600" placeholder="' + esc(PLACEHOLDER) + '" aria-label="Your message"></textarea>' +
+    '      <button class="send" type="submit" aria-label="Send" disabled>' + ICON_SEND + "</button>" +
     "    </form>" +
-    '    <div class="foot mono">AI assistant &middot; can make mistakes</div>' +
-    "  </section>" +
-    '  <button class="launcher mono" aria-expanded="false"><span class="dot"></span>' + esc(LABEL) + "</button>" +
+    "  </aside>" +
+    '  <button class="launcher" aria-expanded="false"><span class="dot"></span>' + esc(LABEL) + "</button>" +
     "</div>";
   document.body.appendChild(host);
 
   var $ = function (s) { return root.querySelector(s); };
-  var panel = $(".panel"), launcher = $(".launcher"), log = $(".log"), chips = $(".chips");
+  var panel = $(".panel"), launcher = $(".launcher"), log = $(".log");
   var form = $("form"), input = $("textarea"), send = $(".send");
   var history = []; // [{role, content}]
   var busy = false;
@@ -149,13 +151,28 @@
   function addMsg(role, text) {
     var el = document.createElement("div");
     el.className = "msg " + (role === "user" ? "me" : "bot");
-    el.innerHTML = '<span class="who mono">' + (role === "user" ? "You" : "tano.bot") + "</span>";
-    var body = document.createElement("span");
-    body.textContent = text;
-    el.appendChild(body);
+    el.textContent = text;
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
-    return body;
+    return el;
+  }
+
+  function start() {
+    history = [];
+    log.innerHTML = "";
+    var g = document.createElement("div");
+    g.className = "greet";
+    g.textContent = GREETING;
+    log.appendChild(g);
+    var chips = document.createElement("div");
+    chips.className = "chips";
+    SUGGESTIONS.forEach(function (q) {
+      var b = document.createElement("button");
+      b.className = "chip"; b.type = "button"; b.textContent = q;
+      b.onclick = function () { ask(q); };
+      chips.appendChild(b);
+    });
+    log.appendChild(chips);
   }
 
   function setOpen(open) {
@@ -163,15 +180,7 @@
     launcher.hidden = open;
     launcher.setAttribute("aria-expanded", String(open));
     if (open) {
-      if (!log.children.length) {
-        addMsg("assistant", GREETING);
-        SUGGESTIONS.forEach(function (q) {
-          var b = document.createElement("button");
-          b.className = "chip"; b.type = "button"; b.textContent = q;
-          b.onclick = function () { ask(q); };
-          chips.appendChild(b);
-        });
-      }
+      if (!log.children.length) start();
       setTimeout(function () { input.focus(); }, 50);
     } else {
       launcher.focus();
@@ -182,7 +191,8 @@
     text = text.trim();
     if (!text || busy) return;
     busy = true;
-    chips.innerHTML = "";
+    var chips = log.querySelector(".chips");
+    if (chips) chips.remove();
     input.value = ""; resize(); send.disabled = true;
     addMsg("user", text);
     history.push({ role: "user", content: text });
@@ -210,7 +220,7 @@
         }
       }
     } catch (e) {
-      answer = "Couldn't reach the assistant. Check your connection and try again.";
+      answer = "Couldn't reach " + NAME + ". Check your connection and try again.";
       out.textContent = answer;
     }
     out.classList.remove("typing");
@@ -222,11 +232,12 @@
 
   function resize() {
     input.style.height = "auto";
-    input.style.height = Math.min(input.scrollHeight, 110) + "px";
+    input.style.height = Math.min(input.scrollHeight, 120) + "px";
   }
 
   launcher.onclick = function () { setOpen(true); };
   $(".x").onclick = function () { setOpen(false); };
+  $(".reset").onclick = function () { if (!busy) { start(); input.focus(); } };
   input.addEventListener("input", function () { resize(); send.disabled = !input.value.trim() || busy; });
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input.value); }
