@@ -87,16 +87,20 @@
       box-shadow: 0 6px 24px rgba(0,0,0,.18);
     }
     /* Glitch hover, same as the buttons on tanodsgn.com (.button-14) */
-    .launcher, .send, .tools button { position: relative; overflow: hidden; }
+    .launcher, .send { position: relative; overflow: hidden; }
     .launcher { position: fixed; }
-    .launcher::after, .send::after, .tools button::after {
+    .launcher::after, .send::after {
       content: ""; position: absolute; inset: 0; pointer-events: none; background-color: rgba(255,255,255,0);
     }
-    .launcher:hover::after, .launcher:focus-visible::after,
-    .send:not(:disabled):hover::after, .send:focus-visible::after,
-    .tools button:hover::after, .tools button:focus-visible::after {
-      animation: glitch-dark .45s steps(1, end) forwards;
-    }
+    /* keep the pill's dot and text above the glitch layer, so the text stays white */
+    .launcher > * { position: relative; z-index: 1; }
+    .launcher::after { z-index: 0; }
+    .launcher:hover::after, .launcher:focus-visible::after { animation: glitch-pill .45s steps(1, end) forwards; }
+    .send:not(:disabled):hover::after, .send:focus-visible::after { animation: glitch-dark .45s steps(1, end) forwards; }
+    .launcher:hover .dot, .launcher:focus-visible .dot { animation: glitch-dot .45s steps(1, end) forwards; }
+    /* start-over and close: only the icon glitches, no box */
+    .tools button:hover svg, .tools button:focus-visible svg { animation: glitch-icon .45s steps(1, end) forwards; }
+
     @keyframes glitch-dark {
       0%   { background-color: rgba(255, 255, 255, 0); }
       10%  { background-color: rgba(255, 255, 255, 0.35); }
@@ -108,6 +112,41 @@
       75%  { background-color: rgba(255, 255, 255, 0.12); }
       85%  { background-color: rgba(0, 0, 0, 0.3); }
       100% { background-color: rgba(0, 0, 0, 0.3); }
+    }
+    /* same flicker, settling on #777777 at 30% */
+    @keyframes glitch-pill {
+      0%   { background-color: rgba(255, 255, 255, 0); }
+      10%  { background-color: rgba(255, 255, 255, 0.35); }
+      20%  { background-color: rgba(0, 0, 0, 0.35); }
+      30%  { background-color: rgba(255, 255, 255, 0.3); }
+      40%  { background-color: rgba(0, 0, 0, 0.4); }
+      52%  { background-color: rgba(255, 255, 255, 0.22); }
+      62%  { background-color: rgba(0, 0, 0, 0.35); }
+      75%  { background-color: rgba(255, 255, 255, 0.12); }
+      85%  { background-color: rgba(119, 119, 119, 0.3); }
+      100% { background-color: rgba(119, 119, 119, 0.3); }
+    }
+    @keyframes glitch-dot {
+      0%   { opacity: 1;   transform: translateY(${-DOT_NUDGE}px); }
+      10%  { opacity: .2;  transform: translate(1px, ${-DOT_NUDGE}px); }
+      20%  { opacity: 1;   transform: translate(-1px, ${-DOT_NUDGE}px); }
+      30%  { opacity: .35; transform: translateY(${-DOT_NUDGE}px); }
+      40%  { opacity: 1;   transform: translate(1px, ${-DOT_NUDGE}px); }
+      52%  { opacity: .5;  transform: translateY(${-DOT_NUDGE}px); }
+      62%  { opacity: 1;   transform: translate(-1px, ${-DOT_NUDGE}px); }
+      75%  { opacity: .7;  transform: translateY(${-DOT_NUDGE}px); }
+      100% { opacity: 1;   transform: translateY(${-DOT_NUDGE}px); }
+    }
+    @keyframes glitch-icon {
+      0%   { opacity: 1;   transform: none; }
+      10%  { opacity: .2;  transform: translateX(1px); }
+      20%  { opacity: 1;   transform: translateX(-1px); }
+      30%  { opacity: .35; transform: none; }
+      40%  { opacity: 1;   transform: translateX(1px); }
+      52%  { opacity: .5;  transform: none; }
+      62%  { opacity: 1;   transform: translateX(-1px); }
+      75%  { opacity: .7;  transform: none; }
+      100% { opacity: 1;   transform: none; }
     }
     .launcher[hidden] { display: none; }
     /* Trim the font's built-in space above/below the letters so text centers optically */
@@ -354,4 +393,5 @@
 
   if (d.open === "true") setOpen(true);
 })();
+
 
