@@ -27,6 +27,16 @@
   var RADIUS = "0";                   // corner rounding of pill, input and buttons: "0" = rectangular
   var BRAND_FONT = '"Monument Grotesk", "Monument Grotesk Variable", "ABC Monument Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif';
 
+  // The "TanoLLM" title in the panel header.
+  // TITLE_FONT tries Monument Grotesk Mono first; if your Cargo site doesn't load it, it falls back to BRAND_FONT.
+  var TITLE_FONT = '"Monument Grotesk Mono", "ABC Monument Grotesk Mono", "Monument Grotesk Mono Variable", ' + BRAND_FONT;
+  var TITLE_UPPERCASE = true;         // true = TANOLLM, false = TanoLLM
+  var TITLE_SIZE = "13px";
+  var TITLE_TRACKING = "0.04em";      // letter spacing
+
+  // Nudges the text inside the input box up (positive) or down (negative) to center it.
+  var INPUT_TEXT_NUDGE = 5;           // in pixels
+
   var GREETING = "Hey there, I'm " + NAME + ".";
   var SUGGESTIONS = [
     "What kind of designer is tano?",
@@ -77,7 +87,8 @@
     @keyframes slide { from { opacity: 0; transform: translateX(${SIDE === "left" ? "-12px" : "12px"}) } to { opacity: 1; transform: none } }
 
     header { display: flex; align-items: center; justify-content: space-between; flex: none; }
-    .title { display: flex; align-items: center; gap: 9px; font-size: 15px; letter-spacing: .01em; }
+    .title { display: flex; align-items: center; gap: 9px; font-family: ${TITLE_FONT}; font-size: ${TITLE_SIZE};
+             letter-spacing: ${TITLE_TRACKING}; text-transform: ${TITLE_UPPERCASE ? "uppercase" : "none"}; }
     .tools { display: flex; gap: 14px; color: var(--mute); }
     .tools button { width: 20px; height: 20px; display: grid; place-items: center; }
     .tools button:hover { color: var(--fg); }
@@ -103,7 +114,10 @@
     form { flex: none; display: flex; align-items: center; gap: 8px;
            background: var(--field); border-radius: ${RADIUS}; padding: 4px 6px 4px 14px; }
     textarea { flex: 1; resize: none; border: 0; background: transparent; color: var(--fg);
-               font: inherit; line-height: 1.3; max-height: 120px; padding: 10px 0; outline: none; display: block; }
+               font: inherit; line-height: 1.3; max-height: 120px; outline: none; display: block;
+               padding: ${10 - INPUT_TEXT_NUDGE}px 0 ${10 + INPUT_TEXT_NUDGE}px;
+               overflow-y: hidden; scrollbar-width: none; }
+    textarea::-webkit-scrollbar { display: none; }
     textarea::placeholder { color: var(--mute); }
     .send { width: 32px; height: 32px; display: grid; place-items: center; color: var(--fg);
             border-radius: ${RADIUS}; flex: none; }
@@ -235,6 +249,7 @@
   function resize() {
     input.style.height = "auto";
     input.style.height = Math.min(input.scrollHeight, 120) + "px";
+    input.style.overflowY = input.scrollHeight > 120 ? "auto" : "hidden"; // only scroll for very long messages
   }
 
   launcher.onclick = function () { setOpen(true); };
