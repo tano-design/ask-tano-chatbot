@@ -25,6 +25,14 @@ const ALLOWED_ORIGINS = (
 
 const client = new Anthropic(); // reads ANTHROPIC_API_KEY from Vercel's env vars
 
+// The widget hides everything after this marker and shows it as clickable follow-up questions.
+const FOLLOWUP_MARKER = "%%FOLLOWUPS%%";
+const FOLLOWUP_INSTRUCTIONS = `
+After every answer, add a new line containing exactly ${FOLLOWUP_MARKER}, then exactly three short
+follow-up questions a visitor might ask next, one per line, no numbering or bullets.
+Write them as the visitor would ask them, under 60 characters each, about Chris's work, background,
+or how to get in touch, and only about things your notes can answer. Don't repeat questions already asked.`;
+
 // ── Basic rate limit (per server instance) ──────────────────────────────────
 // Good enough to stop one person spamming. The real cost cap is the monthly
 // spend limit you set in the Claude Console (see the walkthrough).
@@ -117,7 +125,7 @@ export async function POST(request) {
           model: MODEL,
           max_tokens: MAX_REPLY_TOKENS,
           output_config: { effort: "low" }, // short, fast, cheap answers suit a chat widget
-          system: SYSTEM_PROMPT,
+          system: SYSTEM_PROMPT + "\n" + FOLLOWUP_INSTRUCTIONS,
           messages,
           // If the model declines a message for safety reasons, retry on a fallback model.
           betas: ["server-side-fallback-2026-07-01"],
