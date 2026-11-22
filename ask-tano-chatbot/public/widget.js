@@ -18,8 +18,8 @@
   var SIDE = d.position === "right" ? "right" : "left";
 
   // ── Design settings: edit these ─────────────────────────────────────────────
-  var NAME = "tanoLLM";               // name in the header and greeting
-  var LABEL = "Ask tanoLLM";          // text on the launcher pill
+  var NAME = "TanoLLM";               // name in the header and greeting
+  var LABEL = "Ask TanoLLM";          // text on the launcher pill
   var DOT_COLOR = "#e47bf9";          // the little status dot
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
   var COLUMN_WIDTH = "22.33vw";       // overlay width, matches your index column (max-width: 22.33%)
@@ -45,6 +45,16 @@
 
   // Nudges the pink dot up (positive) or down (negative) to center it on the text.
   var DOT_NUDGE = 1;                  // in pixels
+
+  // Launcher pill text. PILL_TEXT_NUDGE moves the label down (positive) or up (negative)
+  // so the top and bottom padding look equal.
+  var PILL_FONT = TITLE_FONT;         // mono, same as the title
+  var PILL_SIZE = "13px";
+  var PILL_TEXT_NUDGE = 2;            // in pixels
+
+  // Your question bubble. Q_TEXT_NUDGE moves the text down (positive) or up (negative) inside it.
+  var Q_PADDING = 14;                 // in pixels, all sides
+  var Q_TEXT_NUDGE = 1;               // in pixels
 
   var GREETING = "Hey there, I'm " + NAME + ".";
   var SUGGESTIONS = [
@@ -72,14 +82,15 @@
       position: fixed; bottom: ${EDGE}; ${SIDE}: ${EDGE}; z-index: 2147483000;
       display: inline-flex; align-items: center; gap: 10px;
       background: var(--bg); color: var(--fg); border: 1px solid var(--line);
-      padding: 11px 16px 11px 14px; border-radius: ${RADIUS};
-      font: 500 13px/1 ${BRAND_FONT}; letter-spacing: .02em; word-spacing: .12em; text-transform: uppercase;
+      padding: 12px 16px 12px 14px; border-radius: ${RADIUS};
+      font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: .02em; word-spacing: .12em; text-transform: uppercase;
       box-shadow: 0 6px 24px rgba(0,0,0,.18); transition: transform .2s ease;
     }
     .launcher:hover { transform: translateY(-2px); }
     .launcher[hidden] { display: none; }
     /* Trim the font's built-in space above/below the letters so text centers optically */
     .trim { display: block; line-height: 1; text-box: trim-both cap alphabetic; }
+    .launcher .trim { transform: translateY(${PILL_TEXT_NUDGE}px); }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: ${DOT_COLOR}; flex: none; transform: translateY(${-DOT_NUDGE}px); }
     .launcher .dot { animation: pulse 2.4s infinite; }
     @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
@@ -110,7 +121,10 @@
     .greet { font-size: ${GREETING_SIZE}; line-height: 1.2; letter-spacing: -.01em; }
     .turn { display: flex; flex-direction: column; gap: 18px; flex: none; }
     .turn + .turn { padding-top: 28px; }
-    .q { background: var(--field); border-radius: ${RADIUS}; padding: 12px 14px; }
+    /* Your question: a right-aligned bubble, like a text message */
+    .q { align-self: flex-end; max-width: 85%; background: var(--field); border-radius: ${RADIUS};
+         padding: ${Q_PADDING + Q_TEXT_NUDGE}px ${Q_PADDING}px ${Q_PADDING - Q_TEXT_NUDGE}px;
+         text-box: trim-both cap alphabetic; white-space: pre-wrap; word-wrap: break-word; }
     .a { white-space: pre-wrap; word-wrap: break-word; }
     .a.typing:empty::after, .a.typing::after { content: "\\258D"; animation: blink 1s steps(1) infinite; color: var(--mute); }
     @keyframes blink { 50% { opacity: 0 } }
@@ -319,4 +333,5 @@
 
   if (d.open === "true") setOpen(true);
 })();
+
 
