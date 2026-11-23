@@ -24,7 +24,7 @@
   var DOT_DARK = "#a24db5";           // darker purple the dot flickers to on hover
   var DOT_LIGHT = "#f4c2fc";
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
-  var COLUMN_WIDTH = "22.33vw";       // overlay width, matches your index column (max-width: 22.33%)
+  var COLUMN_WIDTH = "21.83vw";       // overlay width, matches your index column (max-width: 22.33%)
   var MOBILE_BREAK = 768;             // below this screen width, the overlay goes full width
   var RADIUS = "0";                   // corner rounding of pill, input and buttons: "0" = rectangular
   var BRAND_FONT = '"Monument Grotesk", "Monument Grotesk Variable", "ABC Monument Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -40,7 +40,7 @@
   // Text sizes use Cargo's own units (rem), so 1.1 here = 1.1 in Cargo and scales the same way.
   var BODY_SIZE = "1.1rem";           // answers, questions, suggestions, input (matches your body text)
   var BODY_LINE_HEIGHT = "1.35";
-  var GREETING_SIZE = "1.6rem";       // "Hey there, I'm TanoLLM."
+  var GREETING_SIZE = "1.6rem";       // "What's up? I'm TanoLLM."
 
   // Nudges the text inside the input box up (positive) or down (negative) to center it.
   var INPUT_TEXT_NUDGE = 5;           // in pixels
@@ -61,13 +61,13 @@
 
   var GAP_ABOVE_INPUT = 32;           // space between the last line of the conversation and the input box, in pixels
 
-  var GREETING = "Hey there, I'm " + NAME + ".";
+  var GREETING = "What's up? I'm " + NAME + ".";
   var SUGGESTIONS = [
     "What kind of designer is tano?",
     "Tell me about Espial Industries",
     "What tools does tano use?",
   ];
-  var PLACEHOLDER = "Ask about tano\u2026";
+  var PLACEHOLDER = "Ask about Chris\u2026";
 
   var css = `
     :host { all: initial; }
@@ -454,4 +454,3 @@
 
   if (d.open === "true") setOpen(true);
 })();
-
