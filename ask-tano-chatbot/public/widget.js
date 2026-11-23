@@ -83,7 +83,7 @@
     /* light mode: follows html[data-theme="light"] on tanodsgn.com */
     .wrap.light {
       --bg: #D9D9D9; --fg: rgba(25,25,25,.9); --mute: rgba(25,25,25,.55); --line: rgba(25,25,25,.15);
-      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #919191;
+      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #AEAEAE;
       --glitch-hi: #e78cf9; --glitch-lo: #9d649f; --icon-end: #e78cf9;
     }
     .wrap, .wrap * { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
@@ -142,7 +142,7 @@
       85%  { background-color: rgba(119, 119, 119, 0.3); }
       100% { background-color: rgba(119, 119, 119, 0.3); }
     }
-    /* light mode pill: flickers through greys, settles on #919191 */
+    /* light mode pill: flickers through greys, settles on #AEAEAE */
     @keyframes glitch-pill-light {
       0%   { background-color: rgba(191, 191, 191, 0); }
       10%  { background-color: #a6a6a6; }
@@ -152,8 +152,8 @@
       52%  { background-color: #9e9e9e; }
       62%  { background-color: #d2d2d2; }
       75%  { background-color: #b3b3b3; }
-      85%  { background-color: #919191; }
-      100% { background-color: #919191; }
+      85%  { background-color: #AEAEAE; }
+      100% { background-color: #AEAEAE; }
     }
     /* dot flickers between darker and lighter purple, no movement */
     @keyframes glitch-dot {
@@ -454,3 +454,4 @@
 
   if (d.open === "true") setOpen(true);
 })();
+
