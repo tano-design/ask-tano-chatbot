@@ -133,7 +133,9 @@ export async function POST(request) {
           model: MODEL,
           max_tokens: MAX_REPLY_TOKENS,
           output_config: { effort: "low" }, // short, fast, cheap answers suit a chat widget
-          system: SYSTEM_PROMPT + "\n" + FOLLOWUP_INSTRUCTIONS,
+          // Prompt caching: your bio is identical for every visitor, so Claude keeps it ready for 5 minutes
+          // and repeat reads cost about a tenth. Answers are exactly the same either way.
+          system: [{ type: "text", text: SYSTEM_PROMPT + "\n" + FOLLOWUP_INSTRUCTIONS, cache_control: { type: "ephemeral" } }],
           messages,
           // If the model declines a message for safety reasons, retry on a fallback model.
           betas: ["server-side-fallback-2026-07-01"],
@@ -169,3 +171,4 @@ export async function POST(request) {
     },
   });
 }
+
