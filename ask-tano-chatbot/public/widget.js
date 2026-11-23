@@ -72,11 +72,20 @@
     :host { all: initial; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     .wrap {
-      --bg: #191919; --fg: #f2f1ed; --mute: #8a8a85; --line: #2e2e2c; --field: #222221;
+      /* dark mode: matches tanodsgn.com */
+      --bg: #191919; --fg: rgba(255,255,255,.85); --mute: rgba(255,255,255,.4); --line: rgba(255,255,255,.12);
+      --field: rgba(255,255,255,.07); --pill-bg: #191919; --pill-fg: #ffffff;
+      --glitch-hi: #ffffff; --glitch-lo: rgba(255,255,255,.25);
       font: ${BODY_SIZE}/${BODY_LINE_HEIGHT} ${BRAND_FONT};
       color: var(--fg); -webkit-font-smoothing: antialiased;
     }
-    .wrap.light { --bg: #f4f4f2; --fg: #2b2f36; --mute: #8b8d91; --line: #e2e2df; --field: #ebebe8; }
+    /* light mode: follows html[data-theme="light"] on tanodsgn.com */
+    .wrap.light {
+      --bg: #D9D9D9; --fg: rgba(25,25,25,.9); --mute: rgba(25,25,25,.55); --line: rgba(25,25,25,.15);
+      --field: rgba(25,25,25,.07); --pill-bg: #5F5F5F; --pill-fg: #ffffff;
+      --glitch-hi: #e78cf9; --glitch-lo: #9d649f;
+    }
+    .wrap, .wrap * { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
 
     button { all: unset; cursor: pointer; }
     button:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
@@ -85,7 +94,7 @@
     .launcher {
       position: fixed; bottom: ${EDGE}; ${SIDE}: ${EDGE}; z-index: 2147483000;
       display: inline-flex; align-items: center; gap: 10px;
-      background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+      background: var(--pill-bg); color: var(--pill-fg); border: 1px solid var(--line);
       padding: 12px 16px 12px 14px; border-radius: ${RADIUS};
       font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: ${TITLE_TRACKING}; word-spacing: .12em; text-transform: uppercase;
       box-shadow: 0 6px 24px rgba(0,0,0,.18);
@@ -100,10 +109,11 @@
     .launcher > * { position: relative; z-index: 1; }
     .launcher::after { z-index: 0; }
     .launcher:hover::after, .launcher:focus-visible::after { animation: glitch-pill .45s steps(1, end) forwards; }
+    .light .launcher:hover::after, .light .launcher:focus-visible::after { animation: glitch-pill-light .45s steps(1, end) forwards; }
     .send:not(:disabled):hover::after, .send:focus-visible::after { animation: glitch-dark .45s steps(1, end) forwards; }
     .launcher:hover .dot, .launcher:focus-visible .dot { animation: glitch-dot .45s steps(1, end) forwards; }
     /* start-over and close: only the icon glitches, no box */
-    .tools button:hover svg, .tools button:focus-visible svg { animation: glitch-icon .45s steps(1, end) forwards; }
+    .tools button:hover, .tools button:focus-visible { animation: glitch-icon .45s steps(1, end) forwards; }
 
     @keyframes glitch-dark {
       0%   { background-color: rgba(255, 255, 255, 0); }
@@ -130,6 +140,19 @@
       85%  { background-color: rgba(119, 119, 119, 0.3); }
       100% { background-color: rgba(119, 119, 119, 0.3); }
     }
+    /* light mode pill, same as your button-14 light glitch */
+    @keyframes glitch-pill-light {
+      0%   { background-color: rgba(231, 140, 249, 0); }
+      10%  { background-color: #e78cf9; }
+      20%  { background-color: rgba(231, 140, 249, 0.35); }
+      30%  { background-color: #e78cf9; }
+      40%  { background-color: rgba(231, 140, 249, 0.5); }
+      52%  { background-color: #e78cf9; }
+      62%  { background-color: rgba(231, 140, 249, 0.35); }
+      75%  { background-color: rgba(231, 140, 249, 0.7); }
+      85%  { background-color: #e78cf9; }
+      100% { background-color: #e78cf9; }
+    }
     /* dot flickers between darker and lighter purple, no movement */
     @keyframes glitch-dot {
       0%   { background-color: ${DOT_COLOR}; }
@@ -142,16 +165,17 @@
       75%  { background-color: ${DOT_LIGHT}; }
       100% { background-color: ${DOT_COLOR}; }
     }
+    /* icons flash like the links on your site: color only, no movement */
     @keyframes glitch-icon {
-      0%   { opacity: 1;   transform: none; }
-      10%  { opacity: .2;  transform: translateX(1px); }
-      20%  { opacity: 1;   transform: translateX(-1px); }
-      30%  { opacity: .35; transform: none; }
-      40%  { opacity: 1;   transform: translateX(1px); }
-      52%  { opacity: .5;  transform: none; }
-      62%  { opacity: 1;   transform: translateX(-1px); }
-      75%  { opacity: .7;  transform: none; }
-      100% { opacity: 1;   transform: none; }
+      0%  { color: var(--glitch-hi); }
+      10% { color: var(--glitch-lo); }
+      20% { color: var(--glitch-hi); }
+      30% { color: var(--glitch-lo); }
+      42% { color: var(--glitch-hi); }
+      55% { color: var(--glitch-lo); }
+      68% { color: var(--glitch-hi); }
+      82% { color: var(--glitch-lo); }
+      100% { color: var(--fg); }
     }
     .launcher[hidden] { display: none; }
     /* Trim the font's built-in space above/below the letters so text centers optically */
@@ -271,6 +295,26 @@
     return wrap;
   }
 
+  // Text load-in: letters cycle through random characters, then settle left to right.
+  var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=/<>[]_-";
+  var SCRAMBLE_MS = 900;              // total load-in time
+  function scramble(el, text) {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = text; return; }
+    var t0 = performance.now();
+    (function frame(now) {
+      var p = Math.min(1, (now - t0) / SCRAMBLE_MS);
+      var settled = Math.floor(p * text.length);
+      var out = "";
+      for (var i = 0; i < text.length; i++) {
+        var c = text[i];
+        out += (i < settled || c === " ") ? c : SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+      }
+      el.textContent = out;
+      if (p < 1 && el.isConnected) requestAnimationFrame(frame);
+      else el.textContent = text;
+    })(t0);
+  }
+
   // Before the first question: greeting + starter questions, sitting at the bottom.
   function start() {
     history = []; asked = [];
@@ -279,10 +323,10 @@
     intro.className = "intro";
     var g = document.createElement("div");
     g.className = "greet";
-    g.textContent = GREETING;
     intro.appendChild(g);
     intro.appendChild(chipList(SUGGESTIONS));
     log.appendChild(intro);
+    scramble(g, GREETING);
   }
 
   function setOpen(open, fromKeyboard) {
@@ -396,7 +440,17 @@
   root.addEventListener("keydown", function (e) { if (e.key === "Escape") setOpen(false, true); });
   form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };
 
+  // Follow the site's light/dark toggle (html data-theme="light"), unless data-theme is set on the script tag.
+  var wrapEl = $(".wrap");
+  function syncTheme() {
+    var light = d.theme ? d.theme === "light" : document.documentElement.getAttribute("data-theme") === "light";
+    wrapEl.classList.toggle("light", light);
+  }
+  syncTheme();
+  new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
   if (d.open === "true") setOpen(true);
 })();
+
 
 
