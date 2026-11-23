@@ -659,6 +659,36 @@
     else setOpen(true, false, "icon");
   }, true);
 
+  function triggerInPath(e) {
+    var path = e.composedPath ? e.composedPath() : [];
+    for (var i = 0; i < path.length && path[i] !== document; i++) {
+      if (path[i] === host) return false;
+      if (isTrigger(path[i])) return true;
+    }
+    return false;
+  }
+  // Cargo may act on the press itself (before the click), so hide those from Cargo too.
+  ["pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "touchend"].forEach(function (type) {
+    window.addEventListener(type, function (e) { if (triggerInPath(e)) e.stopImmediatePropagation(); }, true);
+  });
+
+  // Last line of defence: if Cargo still tries to switch to a "tanollm" page, open the chat instead.
+  var TANOLLM_URL = /(^|[\/#])tanollm\/?$/i;
+  ["pushState", "replaceState"].forEach(function (fn) {
+    var orig = history[fn];
+    history[fn] = function (state, title, url) {
+      if (url != null && TANOLLM_URL.test(String(url).split("?")[0])) { if (!inline) setOpen(true, false, "icon"); return; }
+      return orig.apply(this, arguments);
+    };
+  });
+  // And if the browser ever lands on /tanollm directly, go back to where the visitor was and open the chat.
+  if (TANOLLM_URL.test(location.pathname)) {
+    try { sessionStorage.setItem("tanollm-open", "1"); } catch (e) {}
+    var back = document.referrer && document.referrer.indexOf(location.origin) === 0 && !TANOLLM_URL.test(new URL(document.referrer).pathname)
+      ? document.referrer : location.origin + "/";
+    location.replace(back);
+  }
+
   // Embedded mode: if the page has <div data-tanollm>, the chat lives inside it, always open.
   // Cargo swaps pages without reloading, so keep checking as pages change.
   var inline = false;
@@ -696,12 +726,14 @@
   new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   var reopen = restore();
+  try { if (!TANOLLM_URL.test(location.pathname) && sessionStorage.getItem("tanollm-open")) { sessionStorage.removeItem("tanollm-open"); reopen = true; } } catch (e) {}
   placeWidget();
   if (!inline && (reopen || d.open === "true")) {
     setOpen(true, false, "restore");
     log.scrollTop = log.scrollHeight;
   }
 })();
+
 
   }
 })();
