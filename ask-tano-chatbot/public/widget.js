@@ -46,7 +46,8 @@
   var INPUT_TEXT_NUDGE = 5;           // in pixels
 
   // Nudges the pink dot up (positive) or down (negative) to center it on the text.
-  var DOT_NUDGE = 1;                  // in pixels
+  var DOT_NUDGE = -0.5;               // on the "Ask TanoLLM" button, in pixels
+  var TITLE_DOT_NUDGE = 2.5;          // next to "TanoLLM" at the top of the overlay, in pixels
 
   // Launcher pill text. PILL_TEXT_NUDGE moves the label down (positive) or up (negative)
   // so the top and bottom padding look equal.
@@ -75,15 +76,15 @@
       /* dark mode: matches tanodsgn.com */
       --bg: #191919; --fg: rgba(255,255,255,.85); --mute: rgba(255,255,255,.4); --line: rgba(255,255,255,.12);
       --field: rgba(255,255,255,.07); --pill-bg: #191919; --pill-fg: #ffffff; --pill-line: rgba(255,255,255,.12);
-      --glitch-hi: #ffffff; --glitch-lo: rgba(255,255,255,.25);
+      --glitch-hi: #ffffff; --glitch-lo: rgba(255,255,255,.25); --icon-end: rgba(255,255,255,.85);
       font: ${BODY_SIZE}/${BODY_LINE_HEIGHT} ${BRAND_FONT};
       color: var(--fg); -webkit-font-smoothing: antialiased;
     }
     /* light mode: follows html[data-theme="light"] on tanodsgn.com */
     .wrap.light {
       --bg: #D9D9D9; --fg: rgba(25,25,25,.9); --mute: rgba(25,25,25,.55); --line: rgba(25,25,25,.15);
-      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #BFBFBF;
-      --glitch-hi: #e78cf9; --glitch-lo: #9d649f;
+      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #CBCBCB;
+      --glitch-hi: #e78cf9; --glitch-lo: #9d649f; --icon-end: #e78cf9;
     }
     .wrap, .wrap * { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
 
@@ -97,7 +98,6 @@
       background: var(--pill-bg); color: var(--pill-fg); border: 1px solid var(--pill-line);
       padding: 12px 16px 12px 14px; border-radius: ${RADIUS};
       font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: ${TITLE_TRACKING}; word-spacing: .12em; text-transform: uppercase;
-      box-shadow: 0 6px 24px rgba(0,0,0,.18);
     }
     /* Glitch hover, same as the buttons on tanodsgn.com (.button-14) */
     .launcher, .send { position: relative; overflow: hidden; }
@@ -140,7 +140,7 @@
       85%  { background-color: rgba(119, 119, 119, 0.3); }
       100% { background-color: rgba(119, 119, 119, 0.3); }
     }
-    /* light mode pill: flickers through greys, settles on #BFBFBF */
+    /* light mode pill: flickers through greys, settles on #CBCBCB */
     @keyframes glitch-pill-light {
       0%   { background-color: rgba(191, 191, 191, 0); }
       10%  { background-color: #a6a6a6; }
@@ -150,8 +150,8 @@
       52%  { background-color: #9e9e9e; }
       62%  { background-color: #d2d2d2; }
       75%  { background-color: #b3b3b3; }
-      85%  { background-color: #BFBFBF; }
-      100% { background-color: #BFBFBF; }
+      85%  { background-color: #CBCBCB; }
+      100% { background-color: #CBCBCB; }
     }
     /* dot flickers between darker and lighter purple, no movement */
     @keyframes glitch-dot {
@@ -175,7 +175,7 @@
       55% { color: var(--glitch-lo); }
       68% { color: var(--glitch-hi); }
       82% { color: var(--glitch-lo); }
-      100% { color: var(--fg); }
+      100% { color: var(--icon-end); }
     }
     .launcher[hidden] { display: none; }
     /* Trim the font's built-in space above/below the letters so text centers optically */
@@ -183,6 +183,7 @@
     .launcher .trim { transform: translateY(${PILL_TEXT_NUDGE}px); }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: ${DOT_COLOR}; flex: none; transform: translateY(${-DOT_NUDGE}px); }
     .launcher .dot { animation: pulse 2.4s infinite; }
+    .title .dot { transform: translateY(${-TITLE_DOT_NUDGE}px); }
     @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
 
     /* Column overlay */
@@ -201,7 +202,7 @@
              letter-spacing: ${TITLE_TRACKING}; text-transform: ${TITLE_UPPERCASE ? "uppercase" : "none"}; }
     .tools { display: flex; gap: 14px; color: var(--mute); }
     .tools button { width: 20px; height: 20px; display: grid; place-items: center; }
-    .tools button:hover { color: var(--fg); }
+    .tools button:hover { color: var(--icon-end); }
 
     /* Conversation */
     .log { flex: 1; min-height: 0; overflow-y: auto; position: relative; display: flex; flex-direction: column;
@@ -451,6 +452,4 @@
 
   if (d.open === "true") setOpen(true);
 })();
-
-
 
