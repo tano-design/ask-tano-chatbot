@@ -310,7 +310,9 @@
   var $ = function (s) { return root.querySelector(s); };
   var panel = $(".panel"), launcher = $(".launcher"), log = $(".log");
   var form = $("form"), input = $("textarea"), send = $(".send");
-  var history = []; // [{role, content}]
+  var history = []; // [{role, content}] sent to Claude
+  var turns = [];   // [{q, a, projects}] what's on screen, saved so the chat survives page loads
+  var lastFollow = [];
   var busy = false;
 
   function esc(s) {
@@ -357,7 +359,8 @@
 
   // Before the first question: greeting + starter questions, sitting at the bottom.
   function start() {
-    history = []; asked = [];
+    history = []; asked = []; turns = []; lastFollow = [];
+    save();
     log.innerHTML = "";
     var intro = document.createElement("div");
     intro.className = "intro";
@@ -370,10 +373,11 @@
   }
 
   function setOpen(open, fromKeyboard, via) {
-    if (open && panel.hidden) track("tanollm_open", { via: via || "pill" });
+    if (open && panel.hidden && via !== "restore") track("tanollm_open", { via: via || "pill" });
     panel.hidden = !open;
     launcher.hidden = open;
     launcher.setAttribute("aria-expanded", String(open));
+    save();
     if (open) {
       if (!log.children.length) start();
       setTimeout(function () { input.focus(); }, 50);
@@ -458,8 +462,10 @@
     out.innerHTML = linkify(parsed.text);
     out.classList.remove("typing");
     if (parsed.projects.length) turn.appendChild(cardList(parsed.projects));
-    if (parsed.text) history.push({ role: "assistant", content: parsed.text });
-    else history.pop();
+    if (parsed.text) {
+      history.push({ role: "assistant", content: parsed.text });
+      turns.push({ q: text, a: parsed.text, projects: parsed.projects });
+    } else history.pop();
 
     // Follow-up questions under the answer (falls back to unused starters).
     var notAsked = function (s2) { return asked.indexOf(s2) < 0; };
@@ -471,6 +477,8 @@
       f.appendChild(chipList(follow, "followup"));
       turn.appendChild(f);
     }
+    lastFollow = follow;
+    save();
     busy = false;
     if (!touch) input.focus(); // on phones, don't pop the keyboard up after every answer
   }
@@ -502,10 +510,65 @@
       var cv = document.createElement("span"); cv.className = "cv"; cv.textContent = "View project \u2197";
       ct.appendChild(cn); ct.appendChild(cv);
       a.appendChild(img); a.appendChild(ct);
-      a.onclick = function () { track("tanollm_project_click", { project: id }); };
+      a.onclick = function (e) {
+        e.preventDefault();
+        track("tanollm_project_click", { project: id });
+        save();
+        // On phones the chat covers the screen, so close it to reveal the project page.
+        if (!inline && window.innerWidth <= MOBILE_BREAK) setOpen(false);
+        navigate(pr.url);
+      };
       wrap.appendChild(a);
     });
     return wrap;
+  }
+
+  // Click a hidden normal link in the page so Cargo switches pages its own way (no reload).
+  // If the site doesn't handle it, the browser loads the page normally and the chat is restored from memory.
+  function navigate(url) {
+    // Same site with or without www: use the address the visitor is on, so it counts as an in-site link.
+    try {
+      var u = new URL(url, location.href);
+      if (u.hostname.replace(/^www\./, "") === location.hostname.replace(/^www\./, "")) url = location.origin + u.pathname + u.search + u.hash;
+    } catch (e) {}
+    var link = document.createElement("a");
+    link.href = url; link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(function () { link.remove(); }, 0);
+  }
+
+  // Remember the conversation for this browser tab only (cleared when the tab closes).
+  function save() {
+    try {
+      sessionStorage.setItem("tanollm", JSON.stringify({
+        history: history, turns: turns, asked: asked, follow: lastFollow,
+        open: !panel.hidden && !inline,
+      }));
+    } catch (e) {}
+  }
+  function restore() {
+    var data;
+    try { data = JSON.parse(sessionStorage.getItem("tanollm") || "null"); } catch (e) {}
+    if (!data || !data.turns || !data.turns.length) return false;
+    history = data.history || []; turns = data.turns; asked = data.asked || []; lastFollow = data.follow || [];
+    log.innerHTML = "";
+    turns.forEach(function (t, i) {
+      var turn = document.createElement("div");
+      turn.className = "turn";
+      var q = document.createElement("div"); q.className = "q"; q.textContent = t.q;
+      var a = document.createElement("div"); a.className = "a"; a.innerHTML = linkify(t.a);
+      turn.appendChild(q); turn.appendChild(a);
+      var ids = (t.projects || []).filter(function (id) { return PROJECTS[id]; });
+      if (ids.length) turn.appendChild(cardList(ids));
+      if (i === turns.length - 1 && lastFollow.length) {
+        var f = document.createElement("div"); f.className = "follow";
+        f.appendChild(chipList(lastFollow, "followup"));
+        turn.appendChild(f);
+      }
+      log.appendChild(turn);
+    });
+    return data.open;
   }
 
   function resize() {
@@ -577,6 +640,11 @@
   syncTheme();
   new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
+  var reopen = restore();
   placeWidget();
-  if (!inline && d.open === "true") setOpen(true);
+  if (!inline && (reopen || d.open === "true")) {
+    setOpen(true, false, "restore");
+    log.scrollTop = log.scrollHeight;
+  }
 })();
+
