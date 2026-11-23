@@ -82,7 +82,7 @@
     /* light mode: follows html[data-theme="light"] on tanodsgn.com */
     .wrap.light {
       --bg: #D9D9D9; --fg: rgba(25,25,25,.9); --mute: rgba(25,25,25,.55); --line: rgba(25,25,25,.15);
-      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #191919;
+      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #BFBFBF;
       --glitch-hi: #e78cf9; --glitch-lo: #9d649f;
     }
     .wrap, .wrap * { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
@@ -451,7 +451,6 @@
 
   if (d.open === "true") setOpen(true);
 })();
-
 
 
 
