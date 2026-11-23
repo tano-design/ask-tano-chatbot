@@ -21,7 +21,7 @@
   var NAME = "TanoLLM";               // name in the header and greeting
   var LABEL = "Ask TanoLLM";          // text on the launcher pill
   var DOT_COLOR = "#e47bf9";          // the little status dot
-  var DOT_DARK = "#a24db5";           // darker and lighter purples for the hover glitch
+  var DOT_DARK = "#a24db5";           // darker purple the dot flickers to on hover
   var DOT_LIGHT = "#f4c2fc";
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
   var COLUMN_WIDTH = "22.33vw";       // overlay width, matches your index column (max-width: 22.33%)
@@ -83,10 +83,12 @@
     /* light mode: follows html[data-theme="light"] on tanodsgn.com */
     .wrap.light {
       --bg: #D9D9D9; --fg: rgba(25,25,25,.9); --mute: rgba(25,25,25,.55); --line: rgba(25,25,25,.15);
-      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #CBCBCB;
+      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #919191;
       --glitch-hi: #e78cf9; --glitch-lo: #9d649f; --icon-end: #e78cf9;
     }
     .wrap, .wrap * { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+    /* no fades on anything that glitches, so the flicker stays a hard cut */
+    .tools button, .tools svg, .tools svg *, .dot, .launcher, .launcher::after, .send, .send svg, .send svg * { transition: none; }
 
     button { all: unset; cursor: pointer; }
     button:focus-visible { outline: 1px solid var(--fg); outline-offset: 2px; }
@@ -140,7 +142,7 @@
       85%  { background-color: rgba(119, 119, 119, 0.3); }
       100% { background-color: rgba(119, 119, 119, 0.3); }
     }
-    /* light mode pill: flickers through greys, settles on #CBCBCB */
+    /* light mode pill: flickers through greys, settles on #919191 */
     @keyframes glitch-pill-light {
       0%   { background-color: rgba(191, 191, 191, 0); }
       10%  { background-color: #a6a6a6; }
@@ -150,19 +152,19 @@
       52%  { background-color: #9e9e9e; }
       62%  { background-color: #d2d2d2; }
       75%  { background-color: #b3b3b3; }
-      85%  { background-color: #CBCBCB; }
-      100% { background-color: #CBCBCB; }
+      85%  { background-color: #919191; }
+      100% { background-color: #919191; }
     }
     /* dot flickers between darker and lighter purple, no movement */
     @keyframes glitch-dot {
       0%   { background-color: ${DOT_COLOR}; }
       10%  { background-color: ${DOT_DARK}; }
-      20%  { background-color: ${DOT_LIGHT}; }
+      20%  { background-color: ${DOT_COLOR}; }
       30%  { background-color: ${DOT_DARK}; }
-      40%  { background-color: ${DOT_LIGHT}; }
-      52%  { background-color: ${DOT_COLOR}; }
-      62%  { background-color: ${DOT_DARK}; }
-      75%  { background-color: ${DOT_LIGHT}; }
+      40%  { background-color: ${DOT_COLOR}; }
+      52%  { background-color: ${DOT_DARK}; }
+      62%  { background-color: ${DOT_COLOR}; }
+      75%  { background-color: ${DOT_DARK}; }
       100% { background-color: ${DOT_COLOR}; }
     }
     /* icons flash like the links on your site: color only, no movement */
@@ -452,4 +454,3 @@
 
   if (d.open === "true") setOpen(true);
 })();
-
