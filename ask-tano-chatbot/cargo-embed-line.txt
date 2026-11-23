@@ -1,0 +1,4 @@
+Paste this ONE line into Cargo: Site Settings > CSS / HTML > HTML (at the very end).
+It must stay on a single line, with /widget.js at the end of the address.
+
+<script src="https://ask-tano-chatbot.vercel.app/widget.js" defer></script>
