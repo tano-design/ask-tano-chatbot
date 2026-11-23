@@ -74,7 +74,7 @@
     .wrap {
       /* dark mode: matches tanodsgn.com */
       --bg: #191919; --fg: rgba(255,255,255,.85); --mute: rgba(255,255,255,.4); --line: rgba(255,255,255,.12);
-      --field: rgba(255,255,255,.07); --pill-bg: #191919; --pill-fg: #ffffff;
+      --field: rgba(255,255,255,.07); --pill-bg: #191919; --pill-fg: #ffffff; --pill-line: rgba(255,255,255,.12);
       --glitch-hi: #ffffff; --glitch-lo: rgba(255,255,255,.25);
       font: ${BODY_SIZE}/${BODY_LINE_HEIGHT} ${BRAND_FONT};
       color: var(--fg); -webkit-font-smoothing: antialiased;
@@ -82,7 +82,7 @@
     /* light mode: follows html[data-theme="light"] on tanodsgn.com */
     .wrap.light {
       --bg: #D9D9D9; --fg: rgba(25,25,25,.9); --mute: rgba(25,25,25,.55); --line: rgba(25,25,25,.15);
-      --field: rgba(25,25,25,.07); --pill-bg: #5F5F5F; --pill-fg: #ffffff;
+      --field: rgba(25,25,25,.07); --pill-bg: #D9D9D9; --pill-fg: #191919; --pill-line: #191919;
       --glitch-hi: #e78cf9; --glitch-lo: #9d649f;
     }
     .wrap, .wrap * { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
@@ -94,7 +94,7 @@
     .launcher {
       position: fixed; bottom: ${EDGE}; ${SIDE}: ${EDGE}; z-index: 2147483000;
       display: inline-flex; align-items: center; gap: 10px;
-      background: var(--pill-bg); color: var(--pill-fg); border: 1px solid var(--line);
+      background: var(--pill-bg); color: var(--pill-fg); border: 1px solid var(--pill-line);
       padding: 12px 16px 12px 14px; border-radius: ${RADIUS};
       font: 500 ${PILL_SIZE}/1 ${PILL_FONT}; letter-spacing: ${TITLE_TRACKING}; word-spacing: .12em; text-transform: uppercase;
       box-shadow: 0 6px 24px rgba(0,0,0,.18);
@@ -140,18 +140,18 @@
       85%  { background-color: rgba(119, 119, 119, 0.3); }
       100% { background-color: rgba(119, 119, 119, 0.3); }
     }
-    /* light mode pill, same as your button-14 light glitch */
+    /* light mode pill: flickers through greys, settles on #BFBFBF */
     @keyframes glitch-pill-light {
-      0%   { background-color: rgba(231, 140, 249, 0); }
-      10%  { background-color: #e78cf9; }
-      20%  { background-color: rgba(231, 140, 249, 0.35); }
-      30%  { background-color: #e78cf9; }
-      40%  { background-color: rgba(231, 140, 249, 0.5); }
-      52%  { background-color: #e78cf9; }
-      62%  { background-color: rgba(231, 140, 249, 0.35); }
-      75%  { background-color: rgba(231, 140, 249, 0.7); }
-      85%  { background-color: #e78cf9; }
-      100% { background-color: #e78cf9; }
+      0%   { background-color: rgba(191, 191, 191, 0); }
+      10%  { background-color: #a6a6a6; }
+      20%  { background-color: #ededed; }
+      30%  { background-color: #8c8c8c; }
+      40%  { background-color: #e3e3e3; }
+      52%  { background-color: #9e9e9e; }
+      62%  { background-color: #d2d2d2; }
+      75%  { background-color: #b3b3b3; }
+      85%  { background-color: #BFBFBF; }
+      100% { background-color: #BFBFBF; }
     }
     /* dot flickers between darker and lighter purple, no movement */
     @keyframes glitch-dot {
@@ -451,6 +451,7 @@
 
   if (d.open === "true") setOpen(true);
 })();
+
 
 
 
