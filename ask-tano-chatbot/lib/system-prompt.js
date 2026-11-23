@@ -192,6 +192,7 @@ OUTSIDE OF WORK
 - Movies: Moneyball, War Dogs, Heat (1995).
 - Reading right now: Neuromancer, and The Assassination Complex.
 - Grew up with a brother.
+`;
 
 // 2) HOW THE BOT TALKS (your voice) ───────────────────────────────────────────
 const VOICE = `
@@ -232,4 +233,3 @@ ${ABOUT}
 <voice>
 ${VOICE}
 </voice>`;
-
