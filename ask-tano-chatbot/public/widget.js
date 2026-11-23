@@ -56,6 +56,12 @@
   // Nudges the text inside the input box up (positive) or down (negative) to center it.
   var INPUT_TEXT_NUDGE = 5;           // in pixels
 
+  // Phone-only versions of the nudges above (phones render fonts a little differently).
+  // Positive moves up, negative moves down, half pixels work.
+  var MOBILE_TITLE_DOT_NUDGE = 0.5;   // purple dot next to TANOLLM
+  var MOBILE_INPUT_TEXT_NUDGE = 1;    // "Ask about Chris..." text inside the input box
+  var MOBILE_TAP_SIZE = 40;           // tap area of the X and refresh buttons on phones, in pixels
+
   // Nudges the pink dot up (positive) or down (negative) to center it on the text.
   var DOT_NUDGE = -0.5;               // on the "Ask TanoLLM" button, in pixels
   var TITLE_DOT_NUDGE = 2.5;          // next to "TanoLLM" at the top of the overlay, in pixels
@@ -285,6 +291,13 @@
                animation: slide-up ${SLIDE_MS}ms cubic-bezier(.22, 1, .36, 1); will-change: transform; }
       .panel.closing { animation: slide-down ${SLIDE_MS}ms cubic-bezier(.55, 0, .78, .2) forwards; }
       .launcher { display: none; }
+      .title .dot { transform: translateY(${-MOBILE_TITLE_DOT_NUDGE}px); }
+      textarea { padding: ${10 - MOBILE_INPUT_TEXT_NUDGE}px 0 ${10 + MOBILE_INPUT_TEXT_NUDGE}px; }
+      /* Bigger, easier-to-tap X and refresh; negative margin keeps the X lined up with the right edge */
+      .tools { gap: 2px; margin: ${-(MOBILE_TAP_SIZE - 20) / 2}px ${-(MOBILE_TAP_SIZE - 20) / 2}px; }
+      .tools button { width: ${MOBILE_TAP_SIZE}px; height: ${MOBILE_TAP_SIZE}px; }
+      .tools .reset svg { width: 21px; height: 21px; }
+      .tools .x svg { width: 19px; height: 19px; }
     }
     @keyframes slide-up { from { transform: translateY(100%) } to { transform: translateY(0) } }
     @keyframes slide-down { from { transform: translateY(0) } to { transform: translateY(100%) } }
@@ -687,6 +700,9 @@
   if (!inline && (reopen || d.open === "true")) {
     setOpen(true, false, "restore");
     log.scrollTop = log.scrollHeight;
+  }
+})();
+
   }
 })();
 
