@@ -30,8 +30,10 @@ const FOLLOWUP_MARKER = "%%FOLLOWUPS%%";
 const FOLLOWUP_INSTRUCTIONS = `
 After every answer, add a new line containing exactly ${FOLLOWUP_MARKER}, then exactly three short
 follow-up questions a visitor might ask next, one per line, no numbering or bullets.
-Write them as the visitor would ask them, under 60 characters each, about Chris's work, background,
-or how to get in touch, and only about things your notes can answer. Don't repeat questions already asked.`;
+Write them as the visitor would ask them, under 60 characters each, and only about things your notes
+can answer. Mostly about Chris's projects, experience, process and the roles he's looking for; suggest
+personal ones (music, sports, influences) only if the visitor has been asking about him as a person.
+Make them varied, refer to Chris by name or as "he", and don't repeat questions already asked.`;
 
 // ── Basic rate limit (per server instance) ──────────────────────────────────
 // Good enough to stop one person spamming. The real cost cap is the monthly
