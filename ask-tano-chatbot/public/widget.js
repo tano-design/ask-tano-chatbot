@@ -9,8 +9,9 @@
  *
  *  Embed the chat inside a page (used for the mobile About page): put this in the page's code view
  *    <div data-tanollm data-height="75vh"></div>
- *  Open the chat from your own button or icon: give it the attribute data-tanollm-open
- *    <img src="..." data-tanollm-open>
+ *  Open the chat from your own button or icon: link it to #tanollm, or give it the attribute data-tanollm-open
+ *    <a href="#tanollm"><img src="..."></a>
+ *  On phones it opens full screen and slides up from the bottom (slides back down on close).
  *  Phones (below MOBILE_BREAK) never show the floating pill.
  *  Google Analytics: if the site has GA, the widget sends tanollm_open, tanollm_question, tanollm_reset
  *  and tanollm_project_click events.
@@ -34,6 +35,7 @@
   var DOT_LIGHT = "#f4c2fc";
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
   var COLUMN_WIDTH = "21.83vw";       // overlay width, matches your index column (max-width: 22.33%)
+  var SLIDE_MS = 380;                 // phone slide-up / slide-down time, in milliseconds
   var MOBILE_BREAK = 768;             // below this screen width: no floating pill, overlay goes full width
   var RADIUS = "0";                   // corner rounding of pill, input and buttons: "0" = rectangular
   var BRAND_FONT = '"Monument Grotesk", "Monument Grotesk Variable", "ABC Monument Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -275,7 +277,17 @@
             border-radius: ${RADIUS}; flex: none; }
     .send:disabled { color: var(--mute); opacity: .6; cursor: default; }
 
-    @media (max-width: ${MOBILE_BREAK}px) { .panel { width: 100vw; min-width: 0; } .launcher { display: none; } }
+    /* Phones: full screen, slides up from the bottom */
+    @media (max-width: ${MOBILE_BREAK}px) {
+      .panel { left: 0; right: 0; top: 0; bottom: auto; width: 100%; min-width: 0;
+               height: 100vh; height: 100dvh;
+               padding: calc(${EDGE} + env(safe-area-inset-top)) ${EDGE} calc(${EDGE} + env(safe-area-inset-bottom));
+               animation: slide-up ${SLIDE_MS}ms cubic-bezier(.22, 1, .36, 1); will-change: transform; }
+      .panel.closing { animation: slide-down ${SLIDE_MS}ms cubic-bezier(.55, 0, .78, .2) forwards; }
+      .launcher { display: none; }
+    }
+    @keyframes slide-up { from { transform: translateY(100%) } to { transform: translateY(0) } }
+    @keyframes slide-down { from { transform: translateY(0) } to { transform: translateY(100%) } }
     /* Embedded in a page (div data-tanollm): sits in the page instead of floating */
     .inline .panel { position: relative; top: auto; bottom: auto; left: auto; right: auto; z-index: auto;
                      width: 100%; min-width: 0; height: var(--inline-h, 75vh); padding: 0; animation: none; }
@@ -372,15 +384,29 @@
     scramble(g, GREETING);
   }
 
+  var closeTimer, lockedScroll = false;
   function setOpen(open, fromKeyboard, via) {
     if (open && panel.hidden && via !== "restore") track("tanollm_open", { via: via || "pill" });
-    panel.hidden = !open;
+    var phone = !inline && window.innerWidth <= MOBILE_BREAK;
+    var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    clearTimeout(closeTimer);
+    panel.classList.remove("closing");
+    if (!open && !panel.hidden && phone && !still) {
+      // slide back down, then hide
+      panel.classList.add("closing");
+      closeTimer = setTimeout(function () { panel.classList.remove("closing"); panel.hidden = true; }, SLIDE_MS);
+    } else {
+      panel.hidden = !open;
+    }
+    // While the full-screen chat is open on a phone, the page behind it shouldn't scroll.
+    if (open && phone && !lockedScroll) { document.documentElement.style.overflow = "hidden"; lockedScroll = true; }
+    if (!open && lockedScroll) { document.documentElement.style.overflow = ""; lockedScroll = false; }
     launcher.hidden = open;
     launcher.setAttribute("aria-expanded", String(open));
     save();
     if (open) {
       if (!log.children.length) start();
-      setTimeout(function () { input.focus(); }, 50);
+      if (!touch) setTimeout(function () { input.focus(); }, 50); // phones: don't throw the keyboard up over the slide
     } else if (fromKeyboard) {
       launcher.focus(); // only move focus back for keyboard users, so no focus ring after a mouse click
     }
@@ -595,9 +621,9 @@
     } catch (e) {}
   }
 
-  // Your own icon/button: anything with data-tanollm-open opens the chat.
+  // Your own icon/button: anything linked to #tanollm, or with data-tanollm-open, opens the chat.
   document.addEventListener("click", function (e) {
-    var t = e.target && e.target.closest && e.target.closest("[data-tanollm-open]");
+    var t = e.target && e.target.closest && e.target.closest('[data-tanollm-open], a[href="#tanollm"], a[href$="/#tanollm"]');
     if (!t) return;
     e.preventDefault();
     if (inline) { host.scrollIntoView({ behavior: "smooth", block: "start" }); input.focus(); track("tanollm_open", { via: "icon" }); }
@@ -647,4 +673,5 @@
     log.scrollTop = log.scrollHeight;
   }
 })();
+
 
