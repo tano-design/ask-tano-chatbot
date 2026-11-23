@@ -60,6 +60,9 @@
   // Positive moves up, negative moves down, half pixels work.
   var MOBILE_TITLE_DOT_NUDGE = 0.5;   // purple dot next to TANOLLM
   var MOBILE_INPUT_TEXT_NUDGE = 1;    // "Ask about Chris..." text inside the input box
+  // Your mobile icon, found by its Cargo image id, so it works without any link or class on it.
+  // If you swap the icon image, copy the new hash="..." from Cargo's code view into here.
+  var ICON_SELECTOR = 'media-item[hash="Y3244933181303926924160182603586"]';
   var MOBILE_TAP_SIZE = 40;           // tap area of the X and refresh buttons on phones, in pixels
 
   // Nudges the pink dot up (positive) or down (negative) to center it on the text.
@@ -640,6 +643,7 @@
   function isTrigger(el) {
     if (!el || el.nodeType !== 1) return false;
     if (el.hasAttribute("data-tanollm-open") || (el.classList && el.classList.contains("tanollm-open"))) return true;
+    try { if (ICON_SELECTOR && el.matches(ICON_SELECTOR)) return true; } catch (e) {}
     if ((el.getAttribute("alt") || "").trim().toLowerCase() === "tanollm") return true;
     // Any element with a link, including Cargo's media-item (href="tanollm")
     var href = (el.getAttribute("href") || "").trim();
@@ -733,8 +737,3 @@
     log.scrollTop = log.scrollHeight;
   }
 })();
-
-
-  }
-})();
-
