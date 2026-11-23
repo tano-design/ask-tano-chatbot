@@ -9,8 +9,8 @@
  *
  *  Embed the chat inside a page (used for the mobile About page): put this in the page's code view
  *    <div data-tanollm data-height="75vh"></div>
- *  Open the chat from your own button or icon: link it to #tanollm, or give it the attribute data-tanollm-open
- *    <a href="#tanollm"><img src="..."></a>
+ *  Open the chat from your own button or icon: link it to #tanollm (or /tanollm), give the image
+ *  the alt text "tanollm", the class "tanollm-open", or the attribute data-tanollm-open.
  *  On phones it opens full screen and slides up from the bottom (slides back down on close).
  *  Phones (below MOBILE_BREAK) never show the floating pill.
  *  Google Analytics: if the site has GA, the widget sends tanollm_open, tanollm_question, tanollm_reset
@@ -621,14 +621,30 @@
     } catch (e) {}
   }
 
-  // Your own icon/button: anything linked to #tanollm, or with data-tanollm-open, opens the chat.
-  document.addEventListener("click", function (e) {
-    var t = e.target && e.target.closest && e.target.closest('[data-tanollm-open], a[href="#tanollm"], a[href$="/#tanollm"]');
-    if (!t) return;
+  // Your own icon/button opens the chat. Any of these work, however Cargo writes the link:
+  //   a link to #tanollm or /tanollm, an image with alt text "tanollm", class "tanollm-open", or data-tanollm-open.
+  // Caught before Cargo sees the click, so Cargo never tries to load a "tanollm" page.
+  function isTrigger(el) {
+    if (!el || el.nodeType !== 1) return false;
+    if (el.hasAttribute("data-tanollm-open") || (el.classList && el.classList.contains("tanollm-open"))) return true;
+    if ((el.getAttribute("alt") || "").trim().toLowerCase() === "tanollm") return true;
+    // Any element with a link, including Cargo's media-item (href="tanollm")
+    var href = (el.getAttribute("href") || "").trim();
+    return /(^|[\/#])tanollm\/?$/i.test(href);
+  }
+  window.addEventListener("click", function (e) {
+    var path = e.composedPath ? e.composedPath() : [];
+    var hit = false;
+    for (var i = 0; i < path.length && path[i] !== document; i++) {
+      if (path[i] === host) return; // clicks inside the chat itself
+      if (isTrigger(path[i])) { hit = true; break; }
+    }
+    if (!hit) return;
     e.preventDefault();
-    if (inline) { host.scrollIntoView({ behavior: "smooth", block: "start" }); input.focus(); track("tanollm_open", { via: "icon" }); }
+    e.stopImmediatePropagation();
+    if (inline) { host.scrollIntoView({ behavior: "smooth", block: "start" }); track("tanollm_open", { via: "icon" }); }
     else setOpen(true, false, "icon");
-  });
+  }, true);
 
   // Embedded mode: if the page has <div data-tanollm>, the chat lives inside it, always open.
   // Cargo swaps pages without reloading, so keep checking as pages change.
@@ -673,5 +689,4 @@
     log.scrollTop = log.scrollHeight;
   }
 })();
-
 
