@@ -6,6 +6,13 @@
  *    data-theme="dark" | "light"      default: dark
  *    data-position="left" | "right"   which side the column overlay and pill sit on (default: left)
  *    data-open="true"                 start opened
+ *
+ *  Embed the chat inside a page (used for the mobile About page): put this in the page's code view
+ *    <div data-tanollm data-height="75vh"></div>
+ *  Open the chat from your own button or icon: give it the attribute data-tanollm-open
+ *    <img src="..." data-tanollm-open>
+ *  Phones (below MOBILE_BREAK) never show the floating pill.
+ *  Google Analytics: if the site has GA, the widget sends tanollm_open, tanollm_question and tanollm_reset events.
  */
 (function () {
   if (window.__askTanoLoaded) return; // Cargo can re-run scripts between pages
@@ -25,7 +32,7 @@
   var DOT_LIGHT = "#f4c2fc";
   var EDGE = "1.5rem";                // padding, matches Cargo's 1.5
   var COLUMN_WIDTH = "21.83vw";       // overlay width, matches your index column (max-width: 22.33%)
-  var MOBILE_BREAK = 768;             // below this screen width, the overlay goes full width
+  var MOBILE_BREAK = 768;             // below this screen width: no floating pill, overlay goes full width
   var RADIUS = "0";                   // corner rounding of pill, input and buttons: "0" = rectangular
   var BRAND_FONT = '"Monument Grotesk", "Monument Grotesk Variable", "ABC Monument Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif';
 
@@ -63,9 +70,9 @@
 
   var GREETING = "What's up? I'm " + NAME + ".";
   var SUGGESTIONS = [
-    "What kind of designer is tano?",
-    "Tell me about Espial Industries",
-    "What tools does tano use?",
+    "What kind of roles is Chris looking for?",
+    "Walk me through Espial Industries",
+    "What did he do at U.S. Cargo Systems?",
   ];
   var PLACEHOLDER = "Ask about Chris\u2026";
 
@@ -243,7 +250,11 @@
             border-radius: ${RADIUS}; flex: none; }
     .send:disabled { color: var(--mute); opacity: .6; cursor: default; }
 
-    @media (max-width: ${MOBILE_BREAK}px) { .panel { width: 100vw; min-width: 0; } }
+    @media (max-width: ${MOBILE_BREAK}px) { .panel { width: 100vw; min-width: 0; } .launcher { display: none; } }
+    /* Embedded in a page (div data-tanollm): sits in the page instead of floating */
+    .inline .panel { position: relative; top: auto; bottom: auto; left: auto; right: auto; z-index: auto;
+                     width: 100%; min-width: 0; height: var(--inline-h, 75vh); padding: 0; animation: none; }
+    .inline .launcher, .inline .x { display: none; }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   `;
 
@@ -283,16 +294,17 @@
     });
   }
 
+  var touch = window.matchMedia && matchMedia("(pointer: coarse)").matches;
   var MARKER = "%%FOLLOWUPS%%";
   var asked = [];
 
-  function chipList(questions) {
+  function chipList(questions, source) {
     var wrap = document.createElement("div");
     wrap.className = "chips";
     questions.forEach(function (q) {
       var btn = document.createElement("button");
       btn.className = "chip"; btn.type = "button"; btn.textContent = q;
-      btn.onclick = function () { ask(q); };
+      btn.onclick = function () { ask(q, source); };
       wrap.appendChild(btn);
     });
     return wrap;
@@ -327,12 +339,13 @@
     var g = document.createElement("div");
     g.className = "greet";
     intro.appendChild(g);
-    intro.appendChild(chipList(SUGGESTIONS));
+    intro.appendChild(chipList(SUGGESTIONS, "starter"));
     log.appendChild(intro);
     scramble(g, GREETING);
   }
 
-  function setOpen(open, fromKeyboard) {
+  function setOpen(open, fromKeyboard, via) {
+    if (open && panel.hidden) track("tanollm_open", { via: via || "pill" });
     panel.hidden = !open;
     launcher.hidden = open;
     launcher.setAttribute("aria-expanded", String(open));
@@ -359,10 +372,14 @@
     return { text: text, follow: follow };
   }
 
-  async function ask(text) {
+  async function ask(text, source) {
     text = text.trim();
     if (!text || busy) return;
     busy = true;
+    // Typed questions are never sent to Analytics (visitors might type personal info); only which kind it was.
+    var ev = { source: source || "typed", placement: inline ? "page" : "overlay" };
+    if (source) ev.question = text.slice(0, 100);
+    track("tanollm_question", ev);
     input.value = ""; resize(); send.disabled = true;
 
     // After the first question the greeting goes away.
@@ -420,11 +437,11 @@
     if (follow.length) {
       var f = document.createElement("div");
       f.className = "follow";
-      f.appendChild(chipList(follow));
+      f.appendChild(chipList(follow, "followup"));
       turn.appendChild(f);
     }
     busy = false;
-    input.focus();
+    if (!touch) input.focus(); // on phones, don't pop the keyboard up after every answer
   }
 
   function resize() {
@@ -435,13 +452,57 @@
 
   launcher.onclick = function () { setOpen(true); };
   $(".x").onclick = function () { setOpen(false); };
-  $(".reset").onclick = function () { if (!busy) { start(); input.focus(); } };
+  $(".reset").onclick = function () { if (!busy) { track("tanollm_reset", {}); start(); input.focus(); } };
   input.addEventListener("input", function () { resize(); send.disabled = !input.value.trim() || busy; });
   input.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(input.value); }
   });
   root.addEventListener("keydown", function (e) { if (e.key === "Escape") setOpen(false, true); });
   form.onsubmit = function (e) { e.preventDefault(); ask(input.value); };
+
+  // Google Analytics: uses the site's gtag (or Tag Manager's dataLayer) if there is one. Never breaks the chat.
+  function track(name, params) {
+    try {
+      if (typeof window.gtag === "function") window.gtag("event", name, params);
+      else if (Array.isArray(window.dataLayer)) window.dataLayer.push(Object.assign({ event: name }, params));
+    } catch (e) {}
+  }
+
+  // Your own icon/button: anything with data-tanollm-open opens the chat.
+  document.addEventListener("click", function (e) {
+    var t = e.target && e.target.closest && e.target.closest("[data-tanollm-open]");
+    if (!t) return;
+    e.preventDefault();
+    if (inline) { host.scrollIntoView({ behavior: "smooth", block: "start" }); input.focus(); track("tanollm_open", { via: "icon" }); }
+    else setOpen(true, false, "icon");
+  });
+
+  // Embedded mode: if the page has <div data-tanollm>, the chat lives inside it, always open.
+  // Cargo swaps pages without reloading, so keep checking as pages change.
+  var inline = false;
+  function placeWidget() {
+    var mount = document.querySelector("[data-tanollm], #tanollm");
+    if (mount) {
+      if (host.parentNode !== mount) {
+        mount.appendChild(host);
+        wrapEl.style.setProperty("--inline-h", mount.getAttribute("data-height") || "75vh");
+      }
+      if (!inline) {
+        inline = true; wrapEl.classList.add("inline");
+        panel.hidden = false; launcher.hidden = true;
+        if (!log.children.length) start();
+      }
+    } else {
+      if (host.parentNode !== document.body) document.body.appendChild(host);
+      if (inline) { inline = false; wrapEl.classList.remove("inline"); setOpen(false); }
+    }
+  }
+  var placeQueued = false;
+  new MutationObserver(function () {
+    if (placeQueued) return;
+    placeQueued = true;
+    requestAnimationFrame(function () { placeQueued = false; placeWidget(); });
+  }).observe(document.body, { childList: true, subtree: true });
 
   // Follow the site's light/dark toggle (html data-theme="light"), unless data-theme is set on the script tag.
   var wrapEl = $(".wrap");
@@ -452,5 +513,7 @@
   syncTheme();
   new MutationObserver(syncTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  if (d.open === "true") setOpen(true);
+  placeWidget();
+  if (!inline && d.open === "true") setOpen(true);
 })();
+
