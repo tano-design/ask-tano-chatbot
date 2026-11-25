@@ -97,7 +97,7 @@
 
   // Secret code words: typing one of these (on its own) skips the AI and challenges the visitor to chess.
   var CHESS_CODE_WORDS = ["e4", "1.e4", "checkmate"];
-  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOMATE plays like Chris: his openings, his instincts, his blunders. Built from 598 of his chess.com games.";
+  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOMATE plays like Chris: his openings, his instincts, his blunders. Built from 593 of his chess.com games.";
 
   var SUGGESTIONS = [
     "What kind of roles is Chris looking for?",
