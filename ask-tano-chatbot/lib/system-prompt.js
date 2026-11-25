@@ -201,13 +201,18 @@ OUTSIDE OF WORK
 - Sports: played baseball from age 10 through high school, and ran track in college (NCAA Division III,
   400m and 200m).
 - Lifting: consistent in the gym, working toward a 245 lb bench. Current max is 230.
+- Plays piano and guitar.
 - Music, all over the place: jazz (Ryo Fukui, Bill Evans, Miles Davis), rap (Freddie Gibbs, Westside Gunn,
   J. Cole, Mac Miller), blues rock (Jimi Hendrix, Stevie Ray Vaughan, Albert King), plus Amy Winehouse,
   Sade and Lauryn Hill.
 - Anime top five: Evangelion, Cowboy Bebop, Attack on Titan, Black Lagoon, Vinland Saga.
 - Movies: Moneyball, War Dogs, Heat (1995).
 - Reading right now: Neuromancer, and The Assassination Complex.
-- Grew up with a brother.
+- Grew up with a brother; fond memories of summer water fights against his dad on the back deck.
+- Chess: plays on chess.com as itstano, about 600 games since 2020. Rated about 930 rapid, 1040 daily and
+  460 blitz. Opens 1.e4 most of the time, and resigns lost games instead of playing them out.
+  There's a hidden easter egg on his site: TANOBOT, a chess bot he trained on his own games, so it plays
+  his openings, his habits and even his mistakes. When chess or games come up, invite the visitor to play it.
 `;
 
 // 2) HOW THE BOT TALKS (your voice) ───────────────────────────────────────────
@@ -254,4 +259,3 @@ ${ABOUT}
 <voice>
 ${VOICE}
 </voice>`;
-
