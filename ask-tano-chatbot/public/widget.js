@@ -90,7 +90,13 @@
     cutlass: { title: "Cutlass Music Group", url: "https://tanodsgn.com/cutlass-music-group",         thumb: "thumbs/cutlass.jpg" },
     wbc:     { title: "WBC: Pool C",         url: "https://tanodsgn.com/world-baseball-classic",      thumb: "thumbs/wbc.jpg" },
     pit26:   { title: "PIT-26",              url: "https://tanodsgn.com/pit-26",                      thumb: "thumbs/pit26.jpg" },
+    // TANOBOT, the chess easter egg. Change url if the chess page has a different address.
+    chess:   { title: "TANOBOT",             url: "https://tanodsgn.com/chess",                       thumb: "thumbs/chess.jpg", cta: "Play him \u2197" },
   };
+
+  // Secret code words: typing one of these (on its own) skips the AI and challenges the visitor to chess.
+  var CHESS_CODE_WORDS = ["e4", "1.e4", "checkmate"];
+  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOBOT plays like Chris: his openings, his habits, his blunders. Trained on 598 of his chess.com games.";
 
   var SUGGESTIONS = [
     "What kind of roles is Chris looking for?",
@@ -477,6 +483,20 @@
     turn.style.minHeight = (log.clientHeight - 24 - GAP_ABOVE_INPUT + (q.offsetTop - turn.offsetTop)) + "px";
     log.scrollTo({ top: q.offsetTop - 24, behavior: "smooth" });
 
+    // Secret code word: answer locally (no AI call, no cost) with a chess challenge.
+    if (CHESS_CODE_WORDS.indexOf(text.toLowerCase().replace(/[^a-z0-9.]/g, "")) >= 0 && PROJECTS.chess) {
+      out.classList.remove("typing");
+      scramble(out, CHESS_SECRET_REPLY);
+      turn.appendChild(cardList(["chess"]));
+      turns.push({ q: text, a: CHESS_SECRET_REPLY, projects: ["chess"] });
+      lastFollow = [];
+      track("tanollm_chess_code", {});
+      save();
+      busy = false;
+      if (!touch) input.focus();
+      return;
+    }
+
     asked.push(text);
     history.push({ role: "user", content: text });
     var raw = "", parsed = { text: "", follow: [], projects: [] };
@@ -549,7 +569,7 @@
       img.alt = ""; img.loading = "lazy";
       var ct = document.createElement("span"); ct.className = "ct";
       var cn = document.createElement("span"); cn.className = "cn"; cn.textContent = pr.title;
-      var cv = document.createElement("span"); cv.className = "cv"; cv.textContent = "View project \u2197";
+      var cv = document.createElement("span"); cv.className = "cv"; cv.textContent = pr.cta || "View project \u2197";
       ct.appendChild(cn); ct.appendChild(cv);
       a.appendChild(img); a.appendChild(ct);
       a.onclick = function (e) {
