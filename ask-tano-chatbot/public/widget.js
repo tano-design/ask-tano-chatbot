@@ -29,6 +29,7 @@
 
   // ── Design settings: edit these ─────────────────────────────────────────────
   var NAME = "TanoLLM";               // name in the header and greeting
+  var HEADER_GAP = 18;                // space under the header before scrolled text gets cut off (px)
   var LABEL = "Ask TanoLLM";          // text on the launcher pill
   var DOT_COLOR = "#e47bf9";          // the little status dot
   var DOT_DARK = "#a24db5";           // darker purple the dot flickers to on hover
@@ -90,13 +91,13 @@
     cutlass: { title: "Cutlass Music Group", url: "https://tanodsgn.com/cutlass-music-group",         thumb: "thumbs/cutlass.jpg" },
     wbc:     { title: "WBC: Pool C",         url: "https://tanodsgn.com/world-baseball-classic",      thumb: "thumbs/wbc.jpg" },
     pit26:   { title: "PIT-26",              url: "https://tanodsgn.com/pit-26",                      thumb: "thumbs/pit26.jpg" },
-    // TANOBOT, the chess easter egg. Change url if the chess page has a different address.
-    chess:   { title: "TANOBOT",             url: "https://tanodsgn.com/chess",                       thumb: "thumbs/chess.jpg", cta: "Play him \u2197" },
+    // TANOMATE, the chess easter egg. Change url if the chess page has a different address.
+    chess:   { title: "TANOMATE",             url: "https://tanodsgn.com/chess",                       thumb: "thumbs/chess.jpg", cta: "Play him \u2197" },
   };
 
   // Secret code words: typing one of these (on its own) skips the AI and challenges the visitor to chess.
   var CHESS_CODE_WORDS = ["e4", "1.e4", "checkmate"];
-  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOBOT plays like Chris: his openings, his instincts, his blunders. Built from 598 of his chess.com games.";
+  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOMATE plays like Chris: his openings, his instincts, his blunders. Built from 598 of his chess.com games.";
 
   var SUGGESTIONS = [
     "What kind of roles is Chris looking for?",
@@ -235,7 +236,7 @@
     .panel[hidden] { display: none; }
     @keyframes slide { from { opacity: 0; transform: translateX(${SIDE === "left" ? "-12px" : "12px"}) } to { opacity: 1; transform: none } }
 
-    header { display: flex; align-items: center; justify-content: space-between; flex: none; }
+    header { display: flex; align-items: center; justify-content: space-between; flex: none; padding-bottom: ${HEADER_GAP}px; }
     .title { display: flex; align-items: center; gap: 9px; font-family: ${TITLE_FONT}; font-size: ${TITLE_SIZE}; font-weight: ${TITLE_WEIGHT};
              letter-spacing: ${TITLE_TRACKING}; text-transform: ${TITLE_UPPERCASE ? "uppercase" : "none"}; }
     .tools { display: flex; gap: 14px; color: var(--mute); }

@@ -211,8 +211,8 @@ OUTSIDE OF WORK
 - Grew up with a brother; fond memories of summer water fights against his dad on the back deck.
 - Chess: plays on chess.com as itstano, about 600 games since 2020. Rated about 930 rapid, 1040 daily and
   460 blitz. Opens 1.e4 most of the time, and resigns lost games instead of playing them out.
-  There's a hidden easter egg on his site: TANOBOT, a chess bot he trained on his own games, so it plays
-  his openings, his habits and even his mistakes. When chess or games come up, invite the visitor to play it.
+  There's a hidden easter egg on his site: TANOMATE, a chess bot he trained on his own games, so it plays
+  his openings, his instincts and even his mistakes. When chess or games come up, invite the visitor to play it.
 `;
 
 // 2) HOW THE BOT TALKS (your voice) ───────────────────────────────────────────

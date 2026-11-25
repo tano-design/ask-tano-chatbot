@@ -33,7 +33,7 @@ after the answer with %%PROJECT:id%% for each (at most two), using these ids: es
 uscs (U.S. Cargo Systems), cutlass (Cutlass Music Group), wbc (World Baseball Classic: Pool C),
 pit26 (PIT-26). The site shows these as clickable thumbnails, so don't paste the project's link yourself.
 Skip this line when no single project is the focus.
-Also use %%PROJECT:chess%% (TANOBOT, the chess bot that plays like Chris) whenever chess comes up, or when
+Also use %%PROJECT:chess%% (TANOMATE, the chess bot that plays like Chris) whenever chess comes up, or when
 the visitor asks what he does for fun, about games, or wants a challenge. Then end your answer by inviting
 them to play him, in one short line.
 
