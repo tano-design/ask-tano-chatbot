@@ -96,7 +96,7 @@
 
   // Secret code words: typing one of these (on its own) skips the AI and challenges the visitor to chess.
   var CHESS_CODE_WORDS = ["e4", "1.e4", "checkmate"];
-  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOBOT plays like Chris: his openings, his habits, his blunders. Trained on 598 of his chess.com games.";
+  var CHESS_SECRET_REPLY = "e5. Bold opening. Want a real game? TANOBOT plays like Chris: his openings, his instincts, his blunders. Built from 598 of his chess.com games.";
 
   var SUGGESTIONS = [
     "What kind of roles is Chris looking for?",
@@ -371,24 +371,44 @@
     return wrap;
   }
 
-  // Text load-in: letters cycle through random characters, then settle left to right.
-  var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=/<>[]_-";
+  // Text load-in: starts scrambled, then settles left to right into the real text.
+  // Each letter sits in a box locked to the width of its real letter and words can't break,
+  // so the scrambled text takes exactly the same space: no extra lines, no shifting spacing.
+  var SCR_UP = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", SCR_LO = "abcdefghijklmnopqrstuvwxyz", SCR_NUM = "0123456789";
   var SCRAMBLE_MS = 900;              // total load-in time
+  function scrChar(c) {
+    var pool = /[0-9]/.test(c) ? SCR_NUM : /[A-Z]/.test(c) ? SCR_UP : /[a-z]/.test(c) ? SCR_LO : "";
+    return pool ? pool[Math.floor(Math.random() * pool.length)] : c;
+  }
   function scramble(el, text) {
-    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = text; return; }
+    if (el._scr) cancelAnimationFrame(el._scr);
+    if ((window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) || !el.isConnected) { el.textContent = text; return; }
+    el.textContent = "";
+    var boxes = [];
+    text.split(/(\s+)/).forEach(function (part) {
+      if (!part) return;
+      if (!part.trim()) { el.appendChild(document.createTextNode(part)); return; }
+      var word = document.createElement("span");
+      word.style.whiteSpace = "nowrap";
+      Array.from(part).forEach(function (c) {
+        var b = document.createElement("span");
+        b.textContent = c;
+        b.style.cssText = "display:inline-block;text-align:center;overflow:visible;white-space:pre";
+        word.appendChild(b); boxes.push([b, c]);
+      });
+      el.appendChild(word);
+    });
+    boxes.forEach(function (x) { x[0].style.width = x[0].getBoundingClientRect().width + "px"; });
     var t0 = performance.now();
-    (function frame(now) {
+    function frame(now) {
       var p = Math.min(1, (now - t0) / SCRAMBLE_MS);
-      var settled = Math.floor(p * text.length);
-      var out = "";
-      for (var i = 0; i < text.length; i++) {
-        var c = text[i];
-        out += (i < settled || c === " ") ? c : SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
-      }
-      el.textContent = out;
-      if (p < 1 && el.isConnected) requestAnimationFrame(frame);
-      else el.textContent = text;
-    })(t0);
+      var settled = Math.floor(p * boxes.length);
+      for (var i = 0; i < boxes.length; i++) boxes[i][0].textContent = i < settled ? boxes[i][1] : scrChar(boxes[i][1]);
+      if (p < 1 && el.isConnected) el._scr = requestAnimationFrame(frame);
+      else { el.textContent = text; el._scr = null; }
+    }
+    frame(t0);   // scrambled from the very first paint
+    el._scr = requestAnimationFrame(frame);
   }
 
   // Before the first question: greeting + starter questions, sitting at the bottom.
