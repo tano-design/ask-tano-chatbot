@@ -303,6 +303,8 @@
       .launcher { display: none; }
       .title .dot { transform: translateY(${-MOBILE_TITLE_DOT_NUDGE}px); }
       textarea { padding: ${10 - MOBILE_INPUT_TEXT_NUDGE}px 0 ${10 + MOBILE_INPUT_TEXT_NUDGE}px; }
+      /* iPhones zoom the whole page in when you type into text smaller than 16px, so never go below it */
+      textarea { font-size: max(16px, ${BODY_SIZE}); }
       /* Bigger, easier-to-tap X and refresh; negative margin keeps the X lined up with the right edge */
       .tools { gap: 2px; margin: ${-(MOBILE_TAP_SIZE - 20) / 2}px ${-(MOBILE_TAP_SIZE - 20) / 2}px; }
       .tools button { width: ${MOBILE_TAP_SIZE}px; height: ${MOBILE_TAP_SIZE}px; }
@@ -432,6 +434,18 @@
   function isFullScreen() {
     return !inline && (window.matchMedia ? matchMedia("(max-width: " + MOBILE_BREAK + "px)").matches : window.innerWidth <= MOBILE_BREAK);
   }
+  // When the iPhone keyboard comes up, the screen's visible area shrinks but the full-screen chat doesn't,
+  // so the input ends up hidden behind the keyboard. This keeps the chat exactly the size of what's visible.
+  var vv = window.visualViewport;
+  function fitToScreen() {
+    if (!vv || !wantOpen || !isFullScreen()) { panel.style.height = ""; panel.style.top = ""; return; }
+    var atBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 40;
+    panel.style.height = vv.height + "px";
+    panel.style.top = vv.offsetTop + "px";
+    if (atBottom) log.scrollTop = log.scrollHeight; // keep the latest message in view above the input
+  }
+  if (vv) { vv.addEventListener("resize", fitToScreen); vv.addEventListener("scroll", fitToScreen); }
+
   function setOpen(open, fromKeyboard, via) {
     wantOpen = open;
     if (open && panel.hidden && via !== "restore") track("tanollm_open", { via: via || "pill" });
@@ -449,6 +463,7 @@
     // While the full-screen chat is open on a phone, the page behind it shouldn't scroll.
     if (open && phone && !lockedScroll) { document.documentElement.style.overflow = "hidden"; lockedScroll = true; }
     if (!open && lockedScroll) { document.documentElement.style.overflow = ""; lockedScroll = false; }
+    fitToScreen();
     launcher.hidden = open;
     launcher.setAttribute("aria-expanded", String(open));
     save();
