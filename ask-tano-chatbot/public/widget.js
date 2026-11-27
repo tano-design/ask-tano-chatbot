@@ -427,10 +427,15 @@
     scramble(g, GREETING);
   }
 
-  var closeTimer, lockedScroll = false;
+  var closeTimer, lockedScroll = false, wantOpen = false;
+  // True when the chat is full screen (phones), matching the CSS breakpoint exactly.
+  function isFullScreen() {
+    return !inline && (window.matchMedia ? matchMedia("(max-width: " + MOBILE_BREAK + "px)").matches : window.innerWidth <= MOBILE_BREAK);
+  }
   function setOpen(open, fromKeyboard, via) {
+    wantOpen = open;
     if (open && panel.hidden && via !== "restore") track("tanollm_open", { via: via || "pill" });
-    var phone = !inline && window.innerWidth <= MOBILE_BREAK;
+    var phone = isFullScreen();
     var still = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
     clearTimeout(closeTimer);
     panel.classList.remove("closing");
@@ -596,9 +601,10 @@
       a.onclick = function (e) {
         e.preventDefault();
         track("tanollm_project_click", { project: id });
+        // On phones the chat covers the screen, so close it to reveal the project page,
+        // and remember it as closed so it doesn't pop back open if the page reloads.
+        if (isFullScreen()) setOpen(false);
         save();
-        // On phones the chat covers the screen, so close it to reveal the project page.
-        if (!inline && window.innerWidth <= MOBILE_BREAK) setOpen(false);
         navigate(pr.url);
       };
       wrap.appendChild(a);
@@ -626,7 +632,7 @@
     try {
       sessionStorage.setItem("tanollm", JSON.stringify({
         history: history, turns: turns, asked: asked, follow: lastFollow,
-        open: !panel.hidden && !inline,
+        open: wantOpen && !inline,
       }));
     } catch (e) {}
   }
