@@ -25,8 +25,6 @@ Your API key only ever lives on Vercel. Nothing secret goes into Cargo.
 | `api/chat.js` | The backend that talks to Claude | Rarely (limits and model at the top) |
 | `public/index.html` | A test page so you can try it before touching Cargo | No |
 | `package.json` | Tells Vercel which code library to install | No |
-| `.env.example` | A reminder of the settings you'll add in Vercel | No (never put your real key in it) |
-| `screenshots/` | What it looks like | Not uploaded anywhere important |
 
 Total time: about 30 to 45 minutes, no terminal needed.
 
