@@ -11,7 +11,7 @@ const MAX_REPLY_TOKENS = 1500;      // hard ceiling per answer (includes the mod
 const MAX_MESSAGE_CHARS = 600;      // longest message a visitor can send
 const MAX_TURNS = 12;               // how much conversation history we send back to Claude
 const RATE_LIMIT = 15;              // messages per visitor...
-const RATE_WINDOW_MS = 10 * 60_000; // ...per 10 minutes
+const RATE_WINDOW_MS = 60 * 60_000; // ...per hour
 
 // Sites allowed to talk to this API. Set ALLOWED_ORIGINS in Vercel to override,
 // comma-separated, e.g. "https://tanodsgn.com,https://www.tanodsgn.com"
@@ -113,7 +113,7 @@ export async function POST(request) {
 
   const ip = (request.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
   if (rateLimited(ip)) {
-    return reply(429, "You're sending messages quickly. Try again in a few minutes.", cors);
+    return reply(429, "That's the limit for now. Try again in an hour, or reach Chris directly at cdegaetadesign@gmail.com.", cors);
   }
 
   let body;
