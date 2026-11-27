@@ -45,4 +45,4 @@ The API key lives only in Vercel's environment variables. Nothing secret is in t
 
 [TANOMATE](https://tanodsgn.com/chess), a chess bot trained on my own games. TanoLLM knows the code words that open it.
 
-Made by [Chris DeGaetano](https://tanodsgn.com), graphic and brand designer. Built with Claude.
+Made by [Chris DeGaetano](https://tanodsgn.com), graphic and brand designer.
