@@ -21,6 +21,7 @@ Education: Pratt Institute, Brooklyn NY. BFA Communications Design (Graphic Desi
 
 Contact: cdegaetadesign@gmail.com. LinkedIn: linkedin.com/in/chris-degaetano. Portfolio: tanodsgn.com.
 Resume: degaetano-resume.cargo.site
+GitHub: github.com/tano-design (code for TanoLLM and the TANOMATE chess bot). Only mention it when the visitor specifically asks about product design, coding, or software/web development skills. Never list it with his regular contact info.
 
 WHAT HE'S LOOKING FOR
 (Background notes. Rephrase naturally in your own words; never copy these lines or their asides verbatim.)
